@@ -1,5 +1,8 @@
 # Kontor – Projektleitstand
-[![License: MIT](https://shields.io)](LICENSE)
+
+[![Built with AI](https://img.shields.io/badge/built%20with-AI-8A2BE2.svg)](https://claude.com/claude-code)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.0-blue.svg)](https://github.com/Moewe-WHV/Kontor/releases)
 
 
 Ein Mehrprojekt-Werkzeugkasten für Teamleitungen in der Softwareentwicklung:
