@@ -1,0 +1,30 @@
+# Echte Anwendungsdaten – nie committen (App seedet beim ersten Start Demo-Daten)
+app/data/*.json
+app/data/*.bak
+!app/data/.gitkeep
+
+# NiceGUI Session-/Storage-Dateien
+app/.nicegui/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Secrets
+.env
+.env.*
+!.env.example
+!.env.prod.example
+
+# Editor / OS
+.DS_Store
+.vscode/*
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Deployment-Volumes
+caddy_data/
+caddy_config/
