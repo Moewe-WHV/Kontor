@@ -36,16 +36,16 @@ NAV_GROUPS = [
     ('Törn', [
         ('Board', 'view_kanban', '/board'),
         ('Sprint-Planung', 'flag', '/sprints'),
-        ('Kapazitaet', 'groups', '/capacity'),
+        ('Kapazität', 'groups', '/capacity'),
         ('Abwesenheiten', 'beach_access', '/absences'),
         ('Standup', 'record_voice_over', '/standup'),
         ('Stunden', 'schedule', '/timelog'),
         ('Burndown', 'trending_down', '/burndown'),
     ]),
     ('Maschinenraum', [
-        ('Qualitaet & Bugs', 'bug_report', '/quality'),
+        ('Qualität & Bugs', 'bug_report', '/quality'),
         ('Umgebungen', 'dns', '/environments'),
-        ('Incidents', 'e911_emergency', '/incidents'),
+        ('Incidents', 'report', '/incidents'),
         ('Releases', 'rocket_launch', '/releases'),
     ]),
     ('Brücke', [

@@ -121,7 +121,7 @@ def focus_panel() -> None:
             ui.label('Betrieb & Qualität').classes('text-sm font-bold')
             for i in incs:
                 with ui.row().classes('w-full items-center gap-2 no-wrap'):
-                    ui.icon('e911_emergency', size='16px').classes('text-negative')
+                    ui.icon('report', size='16px').classes('text-negative')
                     ui.label(f'{i.title} ({i.severity.upper()})').classes('text-sm truncate')
             if not incs:
                 ui.label('keine offenen Incidents').classes('text-xs text-grey-5')
