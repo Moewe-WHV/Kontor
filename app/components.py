@@ -65,6 +65,7 @@ NAV_GROUPS = [
     ('Werft', [
         ('Projekte', 'inventory_2', '/projects'),
         ('Crew', 'badge', '/team'),
+        ('Einstellungen', 'settings', '/settings'),
     ]),
 ]
 
@@ -179,6 +180,8 @@ def _page_help_dialog(path: str) -> None:
 
 def _maybe_welcome() -> None:
     """Einmalige Begrüßung pro Browser – verweist auf Fahrplan & Anleitung."""
+    if not store.setting('show_welcome'):
+        return
     try:
         if app.storage.user.get('kontor_onboarded'):
             return

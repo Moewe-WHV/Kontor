@@ -23,8 +23,8 @@ from views import (absences, board, budget, burndown, calendar, capacity, change
                    charter, dashboard, documents, environments, handbook, ideas, incidents,
                    lessons, meetings, metrics, milestones, okrs, one_on_ones, portfolio,
                    projects, quality, raci, raid, releases, requirements, retro, roadmap,
-                   roles, sprints, stakeholders, standup, status, team, timelog, today,
-                   vendors, wetter)
+                   roles, settings, sprints, stakeholders, standup, status, team, timelog,
+                   today, vendors, wetter)
 
 ROUTES = {
     '/': dashboard,
@@ -40,7 +40,7 @@ ROUTES = {
     '/raid': raid, '/releases': releases, '/documents': documents, '/vendors': vendors,
     '/retro': retro, '/wetter': wetter, '/lessons': lessons,
     '/ideas': ideas, '/one-on-ones': one_on_ones,
-    '/projects': projects, '/team': team,
+    '/projects': projects, '/team': team, '/settings': settings,
 }
 
 

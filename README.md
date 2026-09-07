@@ -33,6 +33,8 @@ liegen in einer einfachen JSON-Datei – kein Datenbankserver nötig.
 - **GitHub-Integration**: offene PRs inkl. Review-/CI-Status direkt im
   Dashboard (optional, per Token)
 - **Passwort-Login** (optional, für den Produktivbetrieb)
+- **Einstellungen** – GitHub-Zugang, Vorgaben (Wochenstunden, Sprint-Länge,
+  Währung) sowie Export / Import / Zurücksetzen der Daten, alles in der App
 
 ## Tech-Stack
 
