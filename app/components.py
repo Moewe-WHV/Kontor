@@ -66,6 +66,7 @@ NAV_GROUPS = [
     ('Werft', [
         ('Projekte', 'inventory_2', '/projects'),
         ('Crew', 'badge', '/team'),
+        ('Module', 'tune', '/modules'),
         ('Einstellungen', 'settings', '/settings'),
     ]),
 ]
@@ -103,23 +104,39 @@ def frame(active_path: str):
 
     with drawer:
         for group, items in NAV_GROUPS:
-            group_active = any(path == active_path for _, _, path in items)
+            visible = [it for it in items
+                       if store.module_enabled(it[2]) or it[2] == active_path]
+            if not visible:
+                continue
+            group_active = any(path == active_path for _, _, path in visible)
             exp = ui.expansion(group, value=group_active or group.startswith('Lotse')).classes('w-full') \
                 .props('dense header-class="kontor-title text-xs uppercase text-grey-7 tracking-widest px-1"')
             with exp:
-                for label, icon, path in items:
+                for label, icon, path in visible:
                     active = path == active_path
+                    off = not store.module_enabled(path)
                     row = ui.row().classes(
                         'nav-item w-full items-center gap-3 px-2 py-1 rounded-lg cursor-pointer no-wrap '
-                        + ('nav-active' if active else ''))
+                        + ('nav-active' if active else '') + (' opacity-50' if off else ''))
                     row.on('click', lambda p=path: ui.navigate.to(p))
                     with row:
                         ui.icon(icon).classes('text-lg')
                         ui.label(label).classes('text-sm')
+                        if off:
+                            ui.icon('visibility_off', size='14px').classes('text-grey-5')
 
     with ui.column().classes('w-full max-w-6xl mx-auto p-4 gap-3'):
         if not store.project:
             ui.label('Noch kein Projekt – lege in der Werft eines an.').classes('text-grey-6')
+        elif not store.module_enabled(active_path):
+            with ui.card().classes('w-full bg-amber-1 border border-amber-3 gap-1'):
+                with ui.row().classes('items-center gap-2'):
+                    ui.icon('visibility_off').classes('text-amber-9')
+                    ui.label('Dieser Bereich ist für das aktuelle Projekt ausgeblendet.') \
+                        .classes('text-sm')
+                    ui.button('Module verwalten', icon='tune',
+                              on_click=lambda: ui.navigate.to('/modules')) \
+                        .props('flat dense no-caps size=sm')
         yield
 
     _maybe_welcome()

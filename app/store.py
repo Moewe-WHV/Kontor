@@ -18,7 +18,7 @@ from pathlib import Path
 
 DATA_FILE = Path(__file__).parent / 'data' / 'pm.json'
 SCHEMA = 5  # bei Aenderung der Modelle hochzaehlen -> alte Datei wird gesichert & neu geseedet
-VERSION = '1.0'
+VERSION = '2.0'
 
 # App-weite Einstellungen (liegen mit in pm.json unter "settings").
 # Reine Zusatzdaten – kein Schema-Bump noetig, fehlende Schluessel werden ergaenzt.
@@ -92,9 +92,15 @@ class Project:
     target_date: str = ''
     sponsor: str = ''
     created_at: str = field(default_factory=today_iso)
+    # v2: Bereiche, die fuer dieses Projekt ausgeblendet sind (Pfade, z. B. '/okrs').
+    # Leer = alle Module sichtbar; neue Module erscheinen automatisch.
+    disabled_modules: list[str] = field(default_factory=list)
 
 
 RAG = {'gruen': ('Grün', '#3d7a5d'), 'gelb': ('Gelb', '#cf8a2e'), 'rot': ('Rot', '#a63a3a')}
+
+# Module (Seiten), die immer sichtbar bleiben – ohne sie ist der Leitstand unbenutzbar.
+CORE_MODULES = {'/', '/today', '/roles', '/handbook', '/projects', '/team', '/settings', '/modules'}
 
 
 @dataclass
@@ -740,6 +746,35 @@ class Store:
 
     def set_current_project(self, pid: str) -> None:
         self.current_project_id = pid
+        self.save()
+
+    # -- Module je Projekt (v2) --------------------------------------
+    def module_enabled(self, path: str, pid: str | None = None) -> bool:
+        """Ist der Bereich ``path`` fuer das Projekt sichtbar?"""
+        if path in CORE_MODULES:
+            return True
+        p = self.by_id('projects', pid or self.current_project_id)
+        if p is None:
+            return True
+        return path not in (getattr(p, 'disabled_modules', None) or [])
+
+    def set_module(self, path: str, enabled: bool, pid: str | None = None) -> None:
+        p = self.by_id('projects', pid or self.current_project_id)
+        if p is None or path in CORE_MODULES:
+            return
+        disabled = list(getattr(p, 'disabled_modules', None) or [])
+        if enabled:
+            disabled = [x for x in disabled if x != path]
+        elif path not in disabled:
+            disabled.append(path)
+        p.disabled_modules = disabled
+        self.save()
+
+    def set_project_modules(self, disabled: list[str], pid: str | None = None) -> None:
+        p = self.by_id('projects', pid or self.current_project_id)
+        if p is None:
+            return
+        p.disabled_modules = [x for x in disabled if x not in CORE_MODULES]
         self.save()
 
     def _scoped(self, listname: str, pid: str | None = None):

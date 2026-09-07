@@ -21,10 +21,10 @@ from nicegui import ui
 import auth
 from views import (absences, board, budget, burndown, calendar, capacity, changes,
                    charter, dashboard, documents, environments, handbook, ideas, incidents,
-                   lessons, meetings, metrics, milestones, okrs, one_on_ones, portfolio,
-                   projects, quality, raci, raid, releases, requirements, retro, roadmap,
-                   roles, settings, sprints, stakeholders, standup, status, team, timelog,
-                   today, vendors, wetter)
+                   lessons, meetings, metrics, milestones, modules, okrs, one_on_ones,
+                   portfolio, projects, quality, raci, raid, releases, requirements, retro,
+                   roadmap, roles, settings, sprints, stakeholders, standup, status, team,
+                   timelog, today, vendors, wetter)
 
 ROUTES = {
     '/': dashboard,
@@ -40,7 +40,7 @@ ROUTES = {
     '/raid': raid, '/releases': releases, '/documents': documents, '/vendors': vendors,
     '/retro': retro, '/wetter': wetter, '/lessons': lessons,
     '/ideas': ideas, '/one-on-ones': one_on_ones,
-    '/projects': projects, '/team': team, '/settings': settings,
+    '/projects': projects, '/team': team, '/modules': modules, '/settings': settings,
 }
 
 

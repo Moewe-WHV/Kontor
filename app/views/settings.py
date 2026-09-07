@@ -55,9 +55,9 @@ def _section_defaults() -> None:
 def _section_onboarding() -> None:
     with ui.card().classes('w-full gap-2'):
         ui.label('Einstieg & Hilfe').classes('kontor-title text-md')
-        sw = ui.switch('Willkommens-Dialog fuer neue Browser zeigen',
-                       value=bool(store.setting('show_welcome')))
-        sw.on('update:model-value', lambda e: _save('show_welcome', bool(e.args)))
+        ui.switch('Willkommens-Dialog fuer neue Browser zeigen',
+                  value=bool(store.setting('show_welcome')),
+                  on_change=lambda e: _save('show_welcome', bool(e.value)))
 
         def _show_again() -> None:
             try:
