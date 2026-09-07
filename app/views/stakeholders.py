@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from nicegui import ui
 
-from components import frame, stat_tile
+from components import chart_opts, frame, stat_tile
 from store import STAKEHOLDER_STANCE, Stakeholder, store
 
 STANCE_COLOR = {'befuerworter': 'positive', 'neutral': 'grey-6', 'kritiker': 'negative'}
@@ -71,7 +71,7 @@ def _grid_option(shs) -> dict:
         'series': [{
             'type': 'scatter', 'symbolSize': 22, 'data': data,
             'label': {'show': True, 'formatter': '{b}', 'position': 'right', 'fontSize': 10},
-            'markArea': {'silent': True, 'itemStyle': {'color': 'rgba(31,78,95,0.05)'}, 'data': [
+            'markArea': {'silent': True, 'itemStyle': {'color': 'rgba(99,169,190,0.10)'}, 'data': [
                 [{'xAxis': 3, 'yAxis': 3}, {'xAxis': 5.5, 'yAxis': 5.5}],
             ]},
         }],
@@ -95,7 +95,7 @@ def content() -> None:
     if shs:
         with ui.card().classes('w-full'):
             ui.label('Macht / Interesse (oben rechts = eng einbinden)').classes('kontor-title text-sm')
-            ui.echart(_grid_option(shs)).classes('w-full h-80')
+            ui.echart(chart_opts(_grid_option(shs))).classes('w-full h-80')
 
     by_q: dict[str, list] = {}
     for s in shs:

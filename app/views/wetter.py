@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from nicegui import ui
 
-from components import avatar, frame, resolve_sprint, stat_tile
+from components import avatar, chart_opts, frame, resolve_sprint, stat_tile
 from store import WEATHER, store
 
 _sel = {'sprint': None}
@@ -69,15 +69,15 @@ def content() -> None:
     if len(hist) > 1:
         with ui.card().classes('w-full'):
             ui.label('Stimmungsverlauf').classes('kontor-title text-sm')
-            ui.echart({
+            ui.echart(chart_opts({
                 'grid': {'left': 30, 'right': 15, 'top': 20, 'bottom': 25},
                 'xAxis': {'type': 'category', 'data': [h[0] for h in hist]},
                 'yAxis': {'type': 'value', 'min': 1, 'max': 5},
                 'tooltip': {'trigger': 'axis'},
                 'series': [{'type': 'line', 'data': [h[1] for h in hist], 'smooth': True,
-                            'lineStyle': {'width': 3, 'color': '#1f4e5f'},
-                            'areaStyle': {'opacity': 0.1, 'color': '#1f4e5f'}}],
-            }).classes('w-full h-52')
+                            'lineStyle': {'width': 3, 'color': '#4d9fb4'},
+                            'areaStyle': {'opacity': 0.14, 'color': '#4d9fb4'}}],
+            })).classes('w-full h-52')
 
 
 def page() -> None:

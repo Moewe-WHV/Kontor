@@ -33,27 +33,44 @@ _HEAD = """
   .nav-active { background:#1f4e5f; color:#fff; }
 
   /* -------- Dunkel -------- */
-  body.body--dark { background:#0f1b20; color:#c7d3d7; }
+  /* Drei Ebenen fuer klare Tiefe: Seite < Spalte/Panel < Karte */
+  body.body--dark { background:#0e1a20; color:#ccd8dc; }
   .body--dark .q-header { border-bottom-color:#e6b422; }
-  .body--dark .q-drawer { background:#13232a !important; }
-  .body--dark .q-card { background:#17272e; border-color:#2b3f47; color:#c7d3d7;
-                        box-shadow:0 1px 2px rgba(0,0,0,.35); }
+  .body--dark .q-drawer { background:#12212a !important; }
+  .body--dark .q-card { background:#1e3038; border:1px solid #384c55; color:#ccd8dc;
+                        box-shadow:0 1px 3px rgba(0,0,0,.45); }
   .body--dark .nav-item:hover { background:#1e333c; }
   .body--dark .nav-active { background:#2f6d80; color:#fff; }
 
-  /* Quasar-Hilfsklassen fuer den dunklen Grund lesbar halten */
-  .body--dark .text-grey-9, .body--dark .text-grey-8 { color:#b7c4c8 !important; }
-  .body--dark .text-grey-7 { color:#a3b2b7 !important; }
-  .body--dark .text-grey-6 { color:#93a2a7 !important; }
-  .body--dark .text-grey-5, .body--dark .text-grey-4 { color:#7f8e93 !important; }
+  /* Textfarben – auf dunklem Grund aufgehellt, Farbton bleibt */
+  .body--dark .text-primary   { color:#63a9be !important; }
+  .body--dark .text-secondary { color:#d98a70 !important; }
+  .body--dark .text-positive  { color:#5cbd8f !important; }
+  .body--dark .text-negative  { color:#e0736f !important; }
+  .body--dark .text-warning   { color:#e0a44e !important; }
+  .body--dark .text-info      { color:#7fb8cc !important; }
+  .body--dark .text-dark      { color:#ccd8dc !important; }
+
+  /* Quasar-Grau-Hilfsklassen fuer den dunklen Grund lesbar halten */
+  .body--dark .text-grey-9, .body--dark .text-grey-8 { color:#bcc9cd !important; }
+  .body--dark .text-grey-7 { color:#a7b5ba !important; }
+  .body--dark .text-grey-6 { color:#97a5aa !important; }
+  .body--dark .text-grey-5, .body--dark .text-grey-4 { color:#84939a !important; }
+
+  /* getoente Flaechen + Rahmen */
   .body--dark .bg-blue-1  { background:#14303a !important; }
   .body--dark .bg-red-1   { background:#3a2022 !important; }
-  .body--dark .bg-green-1 { background:#16302a !important; }
-  .body--dark .bg-grey-1, .body--dark .bg-grey-2 { background:#1c2c33 !important; }
+  .body--dark .bg-green-1 { background:#173026 !important; }
+  .body--dark .bg-amber-1 { background:#332a15 !important; }
+  .body--dark .bg-grey-1, .body--dark .bg-grey-2, .body--dark .bg-grey-3 { background:#17272e !important; }
   .body--dark .border-blue-2  { border-color:#1f4a5a !important; }
   .body--dark .border-red-2   { border-color:#5a2f31 !important; }
   .body--dark .border-green-2 { border-color:#2a5045 !important; }
-  .body--dark .border-grey-2, .body--dark .border-grey-3 { border-color:#2b3f47 !important; }
+  .body--dark .border-amber-3 { border-color:#5a4a20 !important; }
+  .body--dark .border-grey-2, .body--dark .border-grey-3 { border-color:#384c55 !important; }
+
+  /* Fortschrittsbalken-Spur nicht zu hell */
+  .body--dark .q-linear-progress__track { opacity:.18 !important; }
 </style>
 """
 

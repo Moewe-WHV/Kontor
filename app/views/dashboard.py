@@ -7,7 +7,7 @@ from datetime import date
 
 from nicegui import ui
 
-from components import avatar, bar, frame, stat_tile
+from components import avatar, bar, chart_opts, frame, stat_tile
 from github_client import GitHubClient, human_age
 from store import RAG, store
 
@@ -47,8 +47,8 @@ def _sprint_burndown_option(sp) -> dict:
             {'type': 'line', 'data': bd['ideal'], 'symbol': 'none',
              'lineStyle': {'type': 'dashed', 'color': '#94a3b8'}},
             {'type': 'line', 'data': bd['remaining'], 'smooth': True, 'symbol': 'none',
-             'lineStyle': {'width': 3, 'color': '#1f4e5f'},
-             'areaStyle': {'opacity': 0.12, 'color': '#1f4e5f'}},
+             'lineStyle': {'width': 3, 'color': '#4d9fb4'},
+             'areaStyle': {'opacity': 0.15, 'color': '#4d9fb4'}},
         ],
     }
 
@@ -87,7 +87,7 @@ def sprint_panel() -> None:
                 bar(committed, cap, label='Commitment vs. Kapazitaet')
                 bar(logged, committed or 1, color='positive', label='Ist-Aufwand vs. Commitment')
             if store.burndown(sp)['days']:
-                ui.echart(_sprint_burndown_option(sp)).classes('w-64 h-28')
+                ui.echart(chart_opts(_sprint_burndown_option(sp))).classes('w-64 h-28')
 
 
 @ui.refreshable

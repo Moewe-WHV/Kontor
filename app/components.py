@@ -234,6 +234,37 @@ def resolve_sprint(sel_id):
 
 
 # --------------------------------------------------------------------------
+# ECharts: neutrale Achsen-/Text-/Rasterfarben, die auf hellem UND dunklem
+# Grund lesbar sind (ECharts rendert auf Canvas, CSS greift dort nicht).
+_CHART_INK = '#8a969b'
+_CHART_GRID = 'rgba(138,150,155,0.22)'
+
+
+def chart_opts(o: dict) -> dict:
+    """ECharts-Optionen um themen-neutrale Chrome-Farben ergaenzen."""
+    o = dict(o)
+    o.setdefault('backgroundColor', 'transparent')
+    o['textStyle'] = {'color': _CHART_INK, **o.get('textStyle', {})}
+    if 'legend' in o and isinstance(o['legend'], dict):
+        o['legend'] = {**o['legend'],
+                       'textStyle': {'color': _CHART_INK, **o['legend'].get('textStyle', {})}}
+    for ax in ('xAxis', 'yAxis'):
+        a = o.get(ax)
+        if not isinstance(a, dict):
+            continue
+        a = dict(a)
+        a['axisLabel'] = {'color': _CHART_INK, **a.get('axisLabel', {})}
+        a['nameTextStyle'] = {'color': _CHART_INK, **a.get('nameTextStyle', {})}
+        line = dict(a.get('axisLine', {}))
+        line['lineStyle'] = {'color': _CHART_GRID, **line.get('lineStyle', {})}
+        a['axisLine'] = line
+        split = dict(a.get('splitLine', {}))
+        split['lineStyle'] = {'color': _CHART_GRID, **split.get('lineStyle', {})}
+        a['splitLine'] = split
+        o[ax] = a
+    return o
+
+
 def stat_tile(value, label: str, color: str = 'text-primary', hint: str = '') -> None:
     with ui.card().classes('items-center p-3 min-w-32 grow gap-0'):
         ui.label(str(value)).classes(f'kontor-title text-2xl {color}')
