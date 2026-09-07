@@ -7,6 +7,7 @@ from nicegui import app, ui
 
 import auth
 import guide
+import theme
 from store import PRIORITIES, PRIORITY_COLOR, STATUS_LABELS, STATUSES, Task, store
 
 # Navigation – Gruppen mit maritimem Anstrich, Funktion bleibt klar
@@ -68,32 +69,14 @@ NAV_GROUPS = [
     ]),
 ]
 
-_HEAD = """
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
-<style>
-  body { background:#e7ece9; font-family:'Barlow','Segoe UI',system-ui,sans-serif; color:#22303a; }
-  .kontor-title { font-family:'Barlow Semi Condensed','Barlow',sans-serif; letter-spacing:.015em; }
-  .q-header { border-bottom:3px solid #e6b422; }
-  .q-drawer { background:#f4f6f4 !important; }
-  .q-card { border:1px solid #dbe2de; border-radius:10px; box-shadow:0 1px 2px rgba(18,48,58,.05); }
-  .nav-item:hover { background:#e3e9e4; }
-  .nav-active { background:#1f4e5f; color:#fff; }
-</style>
-"""
-
-
 def apply_theme() -> None:
-    ui.colors(primary='#1f4e5f', secondary='#b5533a', accent='#e6b422',
-              positive='#3d7a5d', negative='#a63a3a', warning='#cf8a2e', info='#5b8ca3',
-              dark='#12303a')
-    ui.add_head_html(_HEAD)
+    """Rueckwaertskompatibler Alias – Farben/Theme setzen (siehe theme.apply)."""
+    theme.apply()
 
 
 @contextmanager
 def frame(active_path: str):
-    apply_theme()
+    dark = theme.apply()
     drawer = ui.left_drawer(value=True, bordered=True).classes('gap-0 px-2 pb-6')
     with ui.header(elevated=True).classes('bg-primary items-center px-3 gap-2 text-white'):
         ui.button(icon='menu', on_click=drawer.toggle).props('flat round color=white')
@@ -112,6 +95,7 @@ def frame(active_path: str):
         ui.badge(f'Kurs: {sp.name}' if sp else 'vor Anker').props('color=accent text-color=dark')
         ui.button(icon='help_outline', on_click=lambda: _page_help_dialog(active_path)) \
             .props('flat round color=white').tooltip('Was ist diese Seite? (Hilfe)')
+        theme.toggle_button(dark)
         if auth.enabled():
             ui.button(icon='logout', on_click=auth.logout) \
                 .props('flat round color=white').tooltip('Abmelden')

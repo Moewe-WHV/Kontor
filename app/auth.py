@@ -68,7 +68,8 @@ def setup() -> None:
             else:
                 ui.notify('Falsche Zugangsdaten', color='negative')
 
-        ui.query('body').style('background:#e7ece9')
+        import theme
+        theme.apply()
         with ui.card().classes('absolute-center w-80 gap-3 items-stretch'):
             ui.label('Kontor · Projektleitstand').classes('text-lg font-medium text-center')
             username = ui.input('Benutzer').props('outlined dense').on('keydown.enter', try_login)

@@ -33,6 +33,8 @@ liegen in einer einfachen JSON-Datei – kein Datenbankserver nötig.
 - **GitHub-Integration**: offene PRs inkl. Review-/CI-Status direkt im
   Dashboard (optional, per Token)
 - **Passwort-Login** (optional, für den Produktivbetrieb)
+- **Hell-/Dunkel-Ansicht** – umschaltbar in der Kopfzeile (System / Hell /
+  Dunkel), Auswahl bleibt pro Browser erhalten
 
 ## Tech-Stack
 
