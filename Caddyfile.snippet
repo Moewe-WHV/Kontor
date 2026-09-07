@@ -1,0 +1,23 @@
+# --------------------------------------------------------------------------
+# Projektmanager / Kontor-Leitstand
+# Diesen Block in das Caddyfile des VORHANDENEN Caddy (reverse_proxy-caddy-1)
+# einfuegen. Domain anpassen. Danach Caddy neu laden:
+#   docker exec reverse_proxy-caddy-1 caddy reload --config /etc/caddy/Caddyfile
+#
+# Voraussetzung: der Container "projektmanager-app" haengt im selben Docker-Netz
+# wie dieser Caddy (siehe docker-compose.vps.yml).
+# --------------------------------------------------------------------------
+
+leitstand.example.com {
+	encode zstd gzip
+
+	# NiceGUI nutzt WebSockets – Caddy reicht die Upgrade-Header automatisch weiter.
+	reverse_proxy projektmanager-app:8080
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+}

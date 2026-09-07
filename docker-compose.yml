@@ -1,0 +1,18 @@
+services:
+  nicegui:
+    build: .
+    container_name: Projektmanager
+    ports:
+      - "8080:8080"
+      - "5678:5678"
+    volumes:
+      - ./app:/app
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GITHUB_REPO=${GITHUB_REPO:-}
+      - STORAGE_SECRET=${STORAGE_SECRET:-kontor-leitstand-dev}
+      # Dev: Hot-Reload an, Login aus (kein APP_PASSWORD gesetzt).
+      - APP_RELOAD=true
+      - APP_PASSWORD=${APP_PASSWORD:-}
+      - APP_USERNAME=${APP_USERNAME:-admin}
+    restart: unless-stopped

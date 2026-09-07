@@ -1,0 +1,46 @@
+# App-only Stack fuer den VPS, auf dem BEREITS ein Caddy laeuft.
+#
+# Dieser Compose startet NUR die NiceGUI-App (kein eigener Caddy, keine Ports
+# nach aussen). Der vorhandene Caddy-Container spricht die App ueber das
+# gemeinsame Docker-Netz per Containername "projektmanager-app:8080" an.
+#
+# Vorbereitung:
+#   1. cp .env.prod.example .env.prod   und ausfuellen
+#      (DOMAIN/ACME_EMAIL werden hier NICHT gebraucht – die macht der vorhandene Caddy)
+#   2. Namen des Caddy-Netzes herausfinden:
+#        docker inspect reverse_proxy-caddy-1 \
+#          --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{"\n"}}{{end}}'
+#      und unten bei networks.caddy.name eintragen.
+#   3. docker compose -f docker-compose.vps.yml --env-file .env.prod up -d --build
+#   4. Im Caddyfile des vorhandenen Caddy den Block aus Caddyfile.snippet ergaenzen
+#      und Caddy neu laden:
+#        docker exec reverse_proxy-caddy-1 caddy reload --config /etc/caddy/Caddyfile
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: projektmanager-app:latest
+    container_name: projektmanager-app
+    restart: unless-stopped
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GITHUB_REPO=${GITHUB_REPO:-}
+      - STORAGE_SECRET=${STORAGE_SECRET:?STORAGE_SECRET fehlt}
+      - APP_USERNAME=${APP_USERNAME:-admin}
+      - APP_PASSWORD=${APP_PASSWORD:?APP_PASSWORD fehlt}
+    volumes:
+      - ./app/data:/app/data
+    expose:
+      - "8080"          # nur im Docker-Netz sichtbar, kein Host-Port
+    networks:
+      - caddy
+      # Optional zusaetzlich, falls du die App auch lokal am VPS testen willst:
+      #   ports:
+      #     - "127.0.0.1:8090:8080"
+
+networks:
+  caddy:
+    external: true
+    name: CADDY_NETZ_HIER_EINTRAGEN     # z. B. reverse_proxy_default

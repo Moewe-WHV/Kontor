@@ -1,0 +1,47 @@
+# Produktions-Stack fuer den VPS:  App (NiceGUI) + Caddy (Reverse Proxy, HTTPS).
+#
+#   1. .env.prod anlegen  (cp .env.prod.example .env.prod  und ausfuellen)
+#   2. DNS: A-/AAAA-Record der Domain auf die VPS-IP zeigen lassen
+#   3. docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+#
+# Caddy holt das Let's-Encrypt-Zertifikat automatisch (Ports 80 + 443 muessen frei sein).
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: projektmanager-app
+    restart: unless-stopped
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GITHUB_REPO=${GITHUB_REPO:-}
+      - STORAGE_SECRET=${STORAGE_SECRET:?STORAGE_SECRET fehlt}
+      - APP_USERNAME=${APP_USERNAME:-admin}
+      - APP_PASSWORD=${APP_PASSWORD:?APP_PASSWORD fehlt}
+    volumes:
+      - ./app/data:/app/data
+    expose:
+      - "8080"
+    # Kein direktes Port-Mapping: nur Caddy spricht mit der App.
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: projektmanager-caddy
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN:?DOMAIN fehlt}
+      - ACME_EMAIL=${ACME_EMAIL:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

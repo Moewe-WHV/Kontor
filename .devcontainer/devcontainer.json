@@ -1,0 +1,23 @@
+{
+  "name": "Projektmanager",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "nicegui",
+  "workspaceFolder": "/app",
+  "shutdownAction": "none",
+  "forwardPorts": [8080, 5678],
+  "portsAttributes": {
+    "8080": { "label": "Projektmanager" },
+    "5678": { "label": "debugpy" }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python"
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+      ]
+    }
+  }
+}
