@@ -1,5 +1,8 @@
 # Kontor – Projektleitstand
 
+[![License: MIT](https://shields.io)](https://github.com)
+
+
 Ein Mehrprojekt-Werkzeugkasten für Teamleitungen in der Softwareentwicklung:
 Portfolio, Kanban, Sprint- & Kapazitätsplanung, Abwesenheiten, Standup,
 Stundenbuchung, Burndown & Metriken, Retro, Team-Wetter, Risiken &
