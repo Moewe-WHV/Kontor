@@ -16,7 +16,8 @@ def _member_form(existing=None) -> None:
         name = ui.input('Name', value='' if is_new else existing.name).props('outlined dense').classes('w-full')
         role = ui.input('Rolle', value='' if is_new else existing.role).props('outlined dense').classes('w-full')
         with ui.row().classes('w-full gap-2'):
-            hours = ui.number('Wochenstunden', value=40 if is_new else existing.weekly_hours,
+            hours = ui.number('Wochenstunden',
+                              value=store.setting('default_weekly_hours') if is_new else existing.weekly_hours,
                               min=0, step=1, format='%.1f').props('outlined dense').classes('grow')
             rate = ui.number('Tagessatz (EUR)', value=0 if is_new else existing.day_rate,
                              min=0, step=10, format='%.0f').props('outlined dense').classes('grow')

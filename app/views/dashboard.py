@@ -15,11 +15,19 @@ DEFAULT_REPO = os.getenv('GITHUB_REPO', 'zauberzeug/nicegui')
 _gh: dict = {'snap': None, 'loading': False, 'repo': DEFAULT_REPO}
 
 
+def _configured_repo() -> str:
+    return (store.setting('github_repo') or '').strip() or DEFAULT_REPO
+
+
+def _configured_token() -> str | None:
+    return (store.setting('github_token') or '').strip() or None
+
+
 async def _load_gh() -> None:
     _gh['loading'] = True
     gh_panel.refresh()
     try:
-        _gh['snap'] = await GitHubClient(_gh['repo']).fetch()
+        _gh['snap'] = await GitHubClient(_gh['repo'], token=_configured_token()).fetch()
     except Exception as exc:  # noqa: BLE001
         _gh['snap'] = None
         ui.notify(f'GitHub-Fehler: {exc}', type='negative')
@@ -218,6 +226,8 @@ def gh_panel() -> None:
 
 
 def page() -> None:
+    if _gh['snap'] is None and not _gh['loading']:
+        _gh['repo'] = _configured_repo()
     with frame('/'):
         with ui.row().classes('w-full items-center'):
             ui.label('Leitstand').classes('kontor-title text-xl')

@@ -35,6 +35,10 @@ liegen in einer einfachen JSON-Datei – kein Datenbankserver nötig.
 - **Passwort-Login** (optional, für den Produktivbetrieb)
 - **Hell-/Dunkel-Ansicht** – umschaltbar in der Kopfzeile (System / Hell /
   Dunkel), Auswahl bleibt pro Browser erhalten
+- **Einstellungen** – GitHub-Zugang, Vorgaben (Wochenstunden, Sprint-Länge,
+  Währung) sowie Export / Import / Zurücksetzen der Daten, alles in der App
+- **Module je Projekt** – nicht benötigte Bereiche pro Projekt ausblenden
+  (siehe [docs/V2.md](docs/V2.md))
 
 ## Tech-Stack
 

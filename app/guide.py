@@ -375,6 +375,22 @@ PAGES: dict[str, dict] = {
         'tips': ['Die Rolle hier steuert, was auf der Seite „Rollen & Ablauf" '
                  'zu wem passt.'],
     },
+    '/settings': {
+        'title': 'Einstellungen',
+        'what': 'App-weite Optionen: GitHub-Zugang für die PR-Sicht, Vorgaben für '
+                'neue Crew/Sprints, Währung sowie Export/Import und Zurücksetzen '
+                'der Daten.',
+        'steps': [
+            'GitHub-Repo (owner/name) eintragen, damit der Leitstand die richtigen PRs zeigt.',
+            'Vorgaben anpassen – sie gelten nur für neu angelegte Einträge.',
+            'Vor größeren Änderungen einen Export herunterladen.',
+        ],
+        'tips': [
+            'Alles wird in pm.json gespeichert und wirkt sofort.',
+            'Der Token liegt im Klartext in der Datei – auf geteilten Servern '
+            'lieber die Umgebungsvariable GITHUB_TOKEN nutzen.',
+        ],
+    },
 }
 
 
