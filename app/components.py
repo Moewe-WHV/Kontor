@@ -7,6 +7,7 @@ from nicegui import app, ui
 
 import auth
 import guide
+import theme
 from store import PRIORITIES, PRIORITY_COLOR, STATUS_LABELS, STATUSES, Task, store
 
 # Navigation – Gruppen mit maritimem Anstrich, Funktion bleibt klar
@@ -35,16 +36,16 @@ NAV_GROUPS = [
     ('Törn', [
         ('Board', 'view_kanban', '/board'),
         ('Sprint-Planung', 'flag', '/sprints'),
-        ('Kapazitaet', 'groups', '/capacity'),
+        ('Kapazität', 'groups', '/capacity'),
         ('Abwesenheiten', 'beach_access', '/absences'),
         ('Standup', 'record_voice_over', '/standup'),
         ('Stunden', 'schedule', '/timelog'),
         ('Burndown', 'trending_down', '/burndown'),
     ]),
     ('Maschinenraum', [
-        ('Qualitaet & Bugs', 'bug_report', '/quality'),
+        ('Qualität & Bugs', 'bug_report', '/quality'),
         ('Umgebungen', 'dns', '/environments'),
-        ('Incidents', 'e911_emergency', '/incidents'),
+        ('Incidents', 'report', '/incidents'),
         ('Releases', 'rocket_launch', '/releases'),
     ]),
     ('Brücke', [
@@ -65,35 +66,19 @@ NAV_GROUPS = [
     ('Werft', [
         ('Projekte', 'inventory_2', '/projects'),
         ('Crew', 'badge', '/team'),
+        ('Module', 'tune', '/modules'),
+        ('Einstellungen', 'settings', '/settings'),
     ]),
 ]
 
-_HEAD = """
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
-<style>
-  body { background:#e7ece9; font-family:'Barlow','Segoe UI',system-ui,sans-serif; color:#22303a; }
-  .kontor-title { font-family:'Barlow Semi Condensed','Barlow',sans-serif; letter-spacing:.015em; }
-  .q-header { border-bottom:3px solid #e6b422; }
-  .q-drawer { background:#f4f6f4 !important; }
-  .q-card { border:1px solid #dbe2de; border-radius:10px; box-shadow:0 1px 2px rgba(18,48,58,.05); }
-  .nav-item:hover { background:#e3e9e4; }
-  .nav-active { background:#1f4e5f; color:#fff; }
-</style>
-"""
-
-
 def apply_theme() -> None:
-    ui.colors(primary='#1f4e5f', secondary='#b5533a', accent='#e6b422',
-              positive='#3d7a5d', negative='#a63a3a', warning='#cf8a2e', info='#5b8ca3',
-              dark='#12303a')
-    ui.add_head_html(_HEAD)
+    """Rueckwaertskompatibler Alias – Farben/Theme setzen (siehe theme.apply)."""
+    theme.apply()
 
 
 @contextmanager
 def frame(active_path: str):
-    apply_theme()
+    dark = theme.apply()
     drawer = ui.left_drawer(value=True, bordered=True).classes('gap-0 px-2 pb-6')
     with ui.header(elevated=True).classes('bg-primary items-center px-3 gap-2 text-white'):
         ui.button(icon='menu', on_click=drawer.toggle).props('flat round color=white')
@@ -112,29 +97,46 @@ def frame(active_path: str):
         ui.badge(f'Kurs: {sp.name}' if sp else 'vor Anker').props('color=accent text-color=dark')
         ui.button(icon='help_outline', on_click=lambda: _page_help_dialog(active_path)) \
             .props('flat round color=white').tooltip('Was ist diese Seite? (Hilfe)')
+        theme.toggle_button(dark)
         if auth.enabled():
             ui.button(icon='logout', on_click=auth.logout) \
                 .props('flat round color=white').tooltip('Abmelden')
 
     with drawer:
         for group, items in NAV_GROUPS:
-            group_active = any(path == active_path for _, _, path in items)
+            visible = [it for it in items
+                       if store.module_enabled(it[2]) or it[2] == active_path]
+            if not visible:
+                continue
+            group_active = any(path == active_path for _, _, path in visible)
             exp = ui.expansion(group, value=group_active or group.startswith('Lotse')).classes('w-full') \
                 .props('dense header-class="kontor-title text-xs uppercase text-grey-7 tracking-widest px-1"')
             with exp:
-                for label, icon, path in items:
+                for label, icon, path in visible:
                     active = path == active_path
+                    off = not store.module_enabled(path)
                     row = ui.row().classes(
                         'nav-item w-full items-center gap-3 px-2 py-1 rounded-lg cursor-pointer no-wrap '
-                        + ('nav-active' if active else ''))
+                        + ('nav-active' if active else '') + (' opacity-50' if off else ''))
                     row.on('click', lambda p=path: ui.navigate.to(p))
                     with row:
                         ui.icon(icon).classes('text-lg')
                         ui.label(label).classes('text-sm')
+                        if off:
+                            ui.icon('visibility_off', size='14px').classes('text-grey-5')
 
     with ui.column().classes('w-full max-w-6xl mx-auto p-4 gap-3'):
         if not store.project:
             ui.label('Noch kein Projekt – lege in der Werft eines an.').classes('text-grey-6')
+        elif not store.module_enabled(active_path):
+            with ui.card().classes('w-full bg-amber-1 border border-amber-3 gap-1'):
+                with ui.row().classes('items-center gap-2'):
+                    ui.icon('visibility_off').classes('text-amber-9')
+                    ui.label('Dieser Bereich ist für das aktuelle Projekt ausgeblendet.') \
+                        .classes('text-sm')
+                    ui.button('Module verwalten', icon='tune',
+                              on_click=lambda: ui.navigate.to('/modules')) \
+                        .props('flat dense no-caps size=sm')
         yield
 
     _maybe_welcome()
@@ -179,6 +181,8 @@ def _page_help_dialog(path: str) -> None:
 
 def _maybe_welcome() -> None:
     """Einmalige Begrüßung pro Browser – verweist auf Fahrplan & Anleitung."""
+    if not store.setting('show_welcome'):
+        return
     try:
         if app.storage.user.get('kontor_onboarded'):
             return
@@ -230,6 +234,37 @@ def resolve_sprint(sel_id):
 
 
 # --------------------------------------------------------------------------
+# ECharts: neutrale Achsen-/Text-/Rasterfarben, die auf hellem UND dunklem
+# Grund lesbar sind (ECharts rendert auf Canvas, CSS greift dort nicht).
+_CHART_INK = '#8a969b'
+_CHART_GRID = 'rgba(138,150,155,0.22)'
+
+
+def chart_opts(o: dict) -> dict:
+    """ECharts-Optionen um themen-neutrale Chrome-Farben ergaenzen."""
+    o = dict(o)
+    o.setdefault('backgroundColor', 'transparent')
+    o['textStyle'] = {'color': _CHART_INK, **o.get('textStyle', {})}
+    if 'legend' in o and isinstance(o['legend'], dict):
+        o['legend'] = {**o['legend'],
+                       'textStyle': {'color': _CHART_INK, **o['legend'].get('textStyle', {})}}
+    for ax in ('xAxis', 'yAxis'):
+        a = o.get(ax)
+        if not isinstance(a, dict):
+            continue
+        a = dict(a)
+        a['axisLabel'] = {'color': _CHART_INK, **a.get('axisLabel', {})}
+        a['nameTextStyle'] = {'color': _CHART_INK, **a.get('nameTextStyle', {})}
+        line = dict(a.get('axisLine', {}))
+        line['lineStyle'] = {'color': _CHART_GRID, **line.get('lineStyle', {})}
+        a['axisLine'] = line
+        split = dict(a.get('splitLine', {}))
+        split['lineStyle'] = {'color': _CHART_GRID, **split.get('lineStyle', {})}
+        a['splitLine'] = split
+        o[ax] = a
+    return o
+
+
 def stat_tile(value, label: str, color: str = 'text-primary', hint: str = '') -> None:
     with ui.card().classes('items-center p-3 min-w-32 grow gap-0'):
         ui.label(str(value)).classes(f'kontor-title text-2xl {color}')

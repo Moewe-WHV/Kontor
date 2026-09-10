@@ -1,4 +1,4 @@
-"""Kanban-Board mit Drag & Drop (SortableJS ueber ui.column().make_sortable)."""
+"""Kanban-Board mit Drag & Drop (HTML5, ohne externe Bibliothek)."""
 from __future__ import annotations
 
 from nicegui import ui
@@ -7,6 +7,7 @@ from components import avatar, frame, priority_dot, stat_tile, task_dialog
 from store import STATUS_LABELS, STATUSES, store
 
 _filter = {'sprint': None}  # None => aktiver Sprint; '' => Backlog; sonst sprint-id; '*' => alle
+_dragged: dict = {'tid': None}
 
 
 def _scope_tasks():
@@ -23,40 +24,28 @@ def _scope_tasks():
     return [t for t in ptasks if t.sprint_id == sel], (sp.name if sp else '?')
 
 
-def _column_id_map() -> dict:
-    return _COLS  # gefuellt in render()
-
-
-_COLS: dict = {}
-
-
-def _on_drop(e) -> None:
-    target_status = _COLS.get(e.target.id)
-    if not target_status:
+def _drop(status: str) -> None:
+    tid = _dragged.get('tid')
+    _dragged['tid'] = None
+    if not tid:
         return
-    # Reihenfolge + Status aus der neuen DOM-Anordnung der Zielspalte uebernehmen
-    for index, child in enumerate(e.target.default_slot.children):
-        tid = getattr(child, '_task_id', None)
-        if not tid:
-            continue
-        t = store.task(tid)
-        if t:
-            t.order = index
-            if t.status != target_status:
-                t.status = target_status
-                t.done_at = None
-            if target_status == 'done' and not t.done_at:
-                from store import today_iso
-                t.done_at = today_iso()
-    store.save()
+    t = store.task(tid)
+    if not t:
+        return
+    peers = [x for x in store.p_tasks() if x.status == status and x.id != tid]
+    t.order = max((x.order for x in peers), default=-1.0) + 1.0
+    store.set_task_status(tid, status)  # kuemmert sich um started_at/done_at + speichern
+    board.refresh()
     stats.refresh()
 
 
 def _card(task) -> None:
     m = store.member(task.assignee_id)
     logged = store.logged_for_task(task.id)
-    card = ui.card().classes('w-full p-2 gap-1 cursor-grab').style('border-left:3px solid transparent')
-    card._task_id = task.id  # type: ignore[attr-defined]
+    card = ui.card().classes('w-full p-2 gap-1 cursor-grab active:cursor-grabbing') \
+        .style('border-left:3px solid transparent').props('draggable')
+    card.on('dragstart', lambda _, tid=task.id: _dragged.update(tid=tid))
+    card.on('dragend', lambda _: _dragged.update(tid=None))
     with card:
         with ui.row().classes('w-full items-center no-wrap gap-1'):
             priority_dot(task.priority)
@@ -101,7 +90,6 @@ def stats() -> None:
 
 @ui.refreshable
 def board() -> None:
-    _COLS.clear()
     tasks, _ = _scope_tasks()
     by_status = {s: [] for s in STATUSES}
     for t in sorted(tasks, key=lambda t: t.order):
@@ -110,18 +98,18 @@ def board() -> None:
     with ui.row().classes('w-full gap-3 no-wrap overflow-x-auto items-start'):
         for s in STATUSES:
             col_tasks = by_status.get(s, [])
-            with ui.card().classes('bg-grey-2 p-2 gap-2 min-w-[15rem] w-64 shrink-0'):
+            col = ui.card().classes(
+                'bg-grey-2 p-2 gap-2 min-w-[15rem] w-64 shrink-0 transition-all')
+            _wire_drop(col, s)
+            with col:
                 with ui.row().classes('w-full items-center px-1'):
                     ui.label(STATUS_LABELS[s]).classes('text-sm font-bold uppercase text-grey-7')
                     ui.badge(str(len(col_tasks))).props('color=grey-5')
                     ui.space()
                     ui.label(f'{sum(t.estimate_h for t in col_tasks):g} h').classes('text-xs text-grey-6')
-                container = ui.column().classes('w-full gap-2 min-h-[3rem]')
-                _COLS[container.id] = s
-                with container:
+                with ui.column().classes('w-full gap-2 min-h-[3rem]'):
                     for t in col_tasks:
                         _card(t)
-                container.make_sortable(group='kanban', animation=0.15, on_end=_on_drop)
                 ui.button('+ Task', on_click=lambda s=s: task_dialog(
                     default_status=s,
                     default_sprint=(_filter['sprint'] if isinstance(_filter['sprint'], str)
@@ -129,6 +117,13 @@ def board() -> None:
                                     (store.active_sprint.id if store.active_sprint else None)),
                     on_saved=lambda: (board.refresh(), stats.refresh()),
                 )).props('flat dense no-caps size=sm').classes('w-full')
+
+
+def _wire_drop(col, status: str) -> None:
+    hl = 'outline outline-2 outline-primary'
+    col.on('dragover.prevent', lambda: col.classes(add=hl))
+    col.on('dragleave', lambda: col.classes(remove=hl))
+    col.on('drop', lambda _, st=status: (col.classes(remove=hl), _drop(st)))
 
 
 def page() -> None:

@@ -18,6 +18,18 @@ from pathlib import Path
 
 DATA_FILE = Path(__file__).parent / 'data' / 'pm.json'
 SCHEMA = 5  # bei Aenderung der Modelle hochzaehlen -> alte Datei wird gesichert & neu geseedet
+VERSION = '2.0'
+
+# App-weite Einstellungen (liegen mit in pm.json unter "settings").
+# Reine Zusatzdaten – kein Schema-Bump noetig, fehlende Schluessel werden ergaenzt.
+DEFAULT_SETTINGS: dict = {
+    'github_repo': '',            # ueberschreibt die Umgebungsvariable GITHUB_REPO
+    'github_token': '',           # ueberschreibt GITHUB_TOKEN (nur fuer die PR-Sicht)
+    'currency': '€',
+    'default_weekly_hours': 40.0,
+    'default_sprint_days': 14,
+    'show_welcome': True,         # Willkommens-Dialog fuer neue Browser zeigen
+}
 
 STATUSES = ['backlog', 'todo', 'doing', 'review', 'done']
 STATUS_LABELS = {
@@ -80,9 +92,15 @@ class Project:
     target_date: str = ''
     sponsor: str = ''
     created_at: str = field(default_factory=today_iso)
+    # v2: Bereiche, die fuer dieses Projekt ausgeblendet sind (Pfade, z. B. '/okrs').
+    # Leer = alle Module sichtbar; neue Module erscheinen automatisch.
+    disabled_modules: list[str] = field(default_factory=list)
 
 
 RAG = {'gruen': ('Grün', '#3d7a5d'), 'gelb': ('Gelb', '#cf8a2e'), 'rot': ('Rot', '#a63a3a')}
+
+# Module (Seiten), die immer sichtbar bleiben – ohne sie ist der Leitstand unbenutzbar.
+CORE_MODULES = {'/', '/today', '/roles', '/handbook', '/projects', '/team', '/settings', '/modules'}
 
 
 @dataclass
@@ -621,6 +639,7 @@ class Store:
         for key in _MODELS:
             setattr(self, key, [])
         self.current_project_id: str | None = None
+        self.settings: dict = dict(DEFAULT_SETTINGS)
         self._listeners: list = []
 
     # -- Laden / Speichern ------------------------------------------------
@@ -634,13 +653,7 @@ class Store:
                 seed(self)
                 self.save()
                 return self
-            for key, cls in _MODELS.items():
-                names = {f.name for f in fields(cls)}
-                setattr(self, key, [
-                    cls(**{k: v for k, v in row.items() if k in names})
-                    for row in raw.get(key, [])
-                ])
-            self.current_project_id = raw.get('current_project')
+            self._populate(raw)
         else:
             seed(self)
             self.save()
@@ -648,11 +661,44 @@ class Store:
             self.current_project_id = self.projects[0].id if self.projects else None
         return self
 
+    def _populate(self, raw: dict) -> None:
+        """Listen + Einstellungen aus einem geladenen (Datei-/Import-)Payload uebernehmen."""
+        for key, cls in _MODELS.items():
+            names = {f.name for f in fields(cls)}
+            setattr(self, key, [
+                cls(**{k: v for k, v in row.items() if k in names})
+                for row in raw.get(key, [])
+            ])
+        self.settings = {**DEFAULT_SETTINGS, **(raw.get('settings') or {})}
+        self.current_project_id = raw.get('current_project')
+
+    def import_payload(self, raw: dict) -> None:
+        """Kompletten Datenbestand aus einem eingelesenen JSON ersetzen (Import)."""
+        if not isinstance(raw, dict) or 'projects' not in raw:
+            raise ValueError('Kein gueltiger Kontor-Export (Schluessel "projects" fehlt).')
+        self._populate(raw)
+        if not self.by_id('projects', self.current_project_id):
+            self.current_project_id = self.projects[0].id if self.projects else None
+        self.save()
+
+    # -- Einstellungen --------------------------------------------------
+    def setting(self, key: str, default=None):
+        return self.settings.get(key, DEFAULT_SETTINGS.get(key, default))
+
+    def set_setting(self, key: str, value) -> None:
+        self.settings[key] = value
+        self.save()
+
+    def update_settings(self, **kw) -> None:
+        self.settings.update(kw)
+        self.save()
+
     def save(self) -> None:
         with self._lock:
             DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
             payload = {key: [asdict(x) for x in getattr(self, key)] for key in _MODELS}
             payload['_schema'] = SCHEMA
+            payload['settings'] = self.settings
             payload['current_project'] = self.current_project_id
             tmp = DATA_FILE.with_suffix('.tmp')
             tmp.write_text(json.dumps(payload, indent=2, ensure_ascii=False), 'utf-8')
@@ -700,6 +746,35 @@ class Store:
 
     def set_current_project(self, pid: str) -> None:
         self.current_project_id = pid
+        self.save()
+
+    # -- Module je Projekt (v2) --------------------------------------
+    def module_enabled(self, path: str, pid: str | None = None) -> bool:
+        """Ist der Bereich ``path`` fuer das Projekt sichtbar?"""
+        if path in CORE_MODULES:
+            return True
+        p = self.by_id('projects', pid or self.current_project_id)
+        if p is None:
+            return True
+        return path not in (getattr(p, 'disabled_modules', None) or [])
+
+    def set_module(self, path: str, enabled: bool, pid: str | None = None) -> None:
+        p = self.by_id('projects', pid or self.current_project_id)
+        if p is None or path in CORE_MODULES:
+            return
+        disabled = list(getattr(p, 'disabled_modules', None) or [])
+        if enabled:
+            disabled = [x for x in disabled if x != path]
+        elif path not in disabled:
+            disabled.append(path)
+        p.disabled_modules = disabled
+        self.save()
+
+    def set_project_modules(self, disabled: list[str], pid: str | None = None) -> None:
+        p = self.by_id('projects', pid or self.current_project_id)
+        if p is None:
+            return
+        p.disabled_modules = [x for x in disabled if x not in CORE_MODULES]
         self.save()
 
     def _scoped(self, listname: str, pid: str | None = None):

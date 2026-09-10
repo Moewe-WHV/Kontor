@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from nicegui import ui
 
-from components import frame, stat_tile
+from components import chart_opts, frame, stat_tile
 from store import STAKEHOLDER_STANCE, Stakeholder, store
 
 STANCE_COLOR = {'befuerworter': 'positive', 'neutral': 'grey-6', 'kritiker': 'negative'}
@@ -59,19 +59,25 @@ def _form(existing=None) -> None:
 
 def _grid_option(shs) -> dict:
     colors = {'befuerworter': '#3d7a5d', 'neutral': '#8ba1a8', 'kritiker': '#a63a3a'}
-    data = [{'value': [s.interest, s.influence], 'name': s.name,
-             'itemStyle': {'color': colors[s.stance]}} for s in shs]
+    data = [{
+        'value': [s.interest, s.influence], 'name': s.name,
+        'itemStyle': {'color': colors[s.stance]},
+        # Punkte in der rechten Haelfte beschriften wir nach links -> Text bleibt im Bild
+        'label': {'position': 'left' if s.interest >= 3.5 else 'right'},
+    } for s in shs]
     return {
-        'grid': {'left': 90, 'right': 30, 'top': 30, 'bottom': 50},
-        'xAxis': {'name': 'Interesse →', 'min': 0.5, 'max': 5.5, 'interval': 1,
-                  'splitLine': {'show': True}},
-        'yAxis': {'name': 'Macht →', 'min': 0.5, 'max': 5.5, 'interval': 1,
-                  'splitLine': {'show': True}},
+        'grid': {'left': 65, 'right': 45, 'top': 24, 'bottom': 52},
+        'xAxis': {'name': 'Interesse', 'nameLocation': 'middle', 'nameGap': 30,
+                  'min': 0.5, 'max': 5.5, 'interval': 1, 'splitLine': {'show': True}},
+        'yAxis': {'name': 'Macht', 'nameLocation': 'middle', 'nameGap': 38,
+                  'min': 0.5, 'max': 5.5, 'interval': 1, 'splitLine': {'show': True}},
         'tooltip': {'formatter': '{b}'},
         'series': [{
-            'type': 'scatter', 'symbolSize': 22, 'data': data,
-            'label': {'show': True, 'formatter': '{b}', 'position': 'right', 'fontSize': 10},
-            'markArea': {'silent': True, 'itemStyle': {'color': 'rgba(31,78,95,0.05)'}, 'data': [
+            'type': 'scatter', 'symbolSize': 18, 'data': data,
+            'label': {'show': True, 'formatter': '{b}', 'fontSize': 11, 'distance': 6,
+                      'fontWeight': 'bold', 'color': 'inherit',
+                      'textBorderColor': 'rgba(255,255,255,0.55)', 'textBorderWidth': 2},
+            'markArea': {'silent': True, 'itemStyle': {'color': 'rgba(99,169,190,0.13)'}, 'data': [
                 [{'xAxis': 3, 'yAxis': 3}, {'xAxis': 5.5, 'yAxis': 5.5}],
             ]},
         }],
@@ -95,7 +101,7 @@ def content() -> None:
     if shs:
         with ui.card().classes('w-full'):
             ui.label('Macht / Interesse (oben rechts = eng einbinden)').classes('kontor-title text-sm')
-            ui.echart(_grid_option(shs)).classes('w-full h-80')
+            ui.echart(chart_opts(_grid_option(shs))).classes('w-full h-80')
 
     by_q: dict[str, list] = {}
     for s in shs:

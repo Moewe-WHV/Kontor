@@ -5,7 +5,7 @@ from statistics import mean, median
 
 from nicegui import ui
 
-from components import frame, stat_tile
+from components import chart_opts, frame, stat_tile
 from store import store
 
 
@@ -17,12 +17,12 @@ def _velocity_option() -> dict:
     return {
         'tooltip': {'trigger': 'axis'},
         'legend': {'data': ['Commitment', 'erledigt']},
-        'grid': {'left': 45, 'right': 15, 'top': 35, 'bottom': 25},
+        'grid': {'left': 45, 'right': 15, 'top': 40, 'bottom': 25},
         'xAxis': {'type': 'category', 'data': names},
-        'yAxis': {'type': 'value', 'name': 'h'},
+        'yAxis': {'type': 'value', 'name': 'h', 'nameGap': 12},
         'series': [
-            {'name': 'Commitment', 'type': 'bar', 'data': committed, 'itemStyle': {'color': '#cdd8d3'}},
-            {'name': 'erledigt', 'type': 'bar', 'data': done, 'itemStyle': {'color': '#1f4e5f'}},
+            {'name': 'Commitment', 'type': 'bar', 'data': committed, 'itemStyle': {'color': '#9fb0ad'}},
+            {'name': 'erledigt', 'type': 'bar', 'data': done, 'itemStyle': {'color': '#4d9fb4'}},
         ],
     }
 
@@ -31,10 +31,10 @@ def _throughput_option() -> dict:
     tp = store.throughput_by_week()
     return {
         'tooltip': {'trigger': 'axis'},
-        'grid': {'left': 35, 'right': 15, 'top': 20, 'bottom': 25},
+        'grid': {'left': 38, 'right': 15, 'top': 40, 'bottom': 25},
         'xAxis': {'type': 'category', 'data': list(tp)},
-        'yAxis': {'type': 'value', 'name': 'Tasks'},
-        'series': [{'type': 'bar', 'data': list(tp.values()), 'itemStyle': {'color': '#3d7a5d'}}],
+        'yAxis': {'type': 'value', 'name': 'Tasks', 'nameGap': 12},
+        'series': [{'type': 'bar', 'data': list(tp.values()), 'itemStyle': {'color': '#4c9a72'}}],
     }
 
 
@@ -48,9 +48,10 @@ def _hist_option(values: list[int], color: str) -> dict:
         buckets[v] += 1
     return {
         'tooltip': {'trigger': 'axis'},
-        'grid': {'left': 35, 'right': 15, 'top': 20, 'bottom': 25},
-        'xAxis': {'type': 'category', 'data': [str(i) for i in range(hi + 1)], 'name': 'Tage'},
-        'yAxis': {'type': 'value', 'name': 'Tasks'},
+        'grid': {'left': 38, 'right': 15, 'top': 40, 'bottom': 30},
+        'xAxis': {'type': 'category', 'data': [str(i) for i in range(hi + 1)],
+                  'name': 'Tage', 'nameGap': 22},
+        'yAxis': {'type': 'value', 'name': 'Tasks', 'nameGap': 12},
         'series': [{'type': 'bar', 'data': buckets, 'itemStyle': {'color': color}}],
     }
 
@@ -80,13 +81,13 @@ def content() -> None:
 
     with ui.card().classes('w-full'):
         ui.label('Velocity – Commitment vs. tatsaechlich erledigt').classes('text-sm font-bold')
-        ui.echart(_velocity_option()).classes('w-full h-64')
+        ui.echart(chart_opts(_velocity_option())).classes('w-full h-64')
 
     with ui.row().classes('w-full gap-3 no-wrap flex-wrap'):
         with ui.card().classes('grow min-w-[20rem]'):
             ui.label('Cycle-Time-Verteilung').classes('text-sm font-bold')
             if cycle:
-                ui.echart(_hist_option(cycle, '#1f4e5f')).classes('w-full h-56')
+                ui.echart(chart_opts(_hist_option(cycle, '#4d9fb4'))).classes('w-full h-56')
                 ui.label(f'Ø {mean(cycle):.1f} d · Median {median(cycle):g} d · max {max(cycle)} d') \
                     .classes('text-xs text-grey-6')
             else:
@@ -94,7 +95,7 @@ def content() -> None:
         with ui.card().classes('grow min-w-[20rem]'):
             ui.label('Lead-Time-Verteilung').classes('text-sm font-bold')
             if lead:
-                ui.echart(_hist_option(lead, '#5b8ca3')).classes('w-full h-56')
+                ui.echart(chart_opts(_hist_option(lead, '#5b8ca3'))).classes('w-full h-56')
                 ui.label(f'Ø {mean(lead):.1f} d · Median {median(lead):g} d · max {max(lead)} d') \
                     .classes('text-xs text-grey-6')
             else:
@@ -102,7 +103,7 @@ def content() -> None:
 
     with ui.card().classes('w-full'):
         ui.label('Durchsatz – erledigte Tasks pro Woche').classes('text-sm font-bold')
-        ui.echart(_throughput_option()).classes('w-full h-52')
+        ui.echart(chart_opts(_throughput_option())).classes('w-full h-52')
 
 
 def page() -> None:

@@ -375,6 +375,36 @@ PAGES: dict[str, dict] = {
         'tips': ['Die Rolle hier steuert, was auf der Seite „Rollen & Ablauf" '
                  'zu wem passt.'],
     },
+    '/modules': {
+        'title': 'Module',
+        'what': 'Legt fest, welche Bereiche im Menü dieses Projekts erscheinen. '
+                'Ausblenden löscht nichts – es räumt nur das Menü auf.',
+        'steps': [
+            'Oben eine Vorlage wählen (z. B. „Schlank") oder einzeln schalten.',
+            'Schalter aus = Bereich verschwindet aus dem Menü dieses Projekts.',
+            'Kernbereiche mit Schloss-Symbol bleiben immer sichtbar.',
+        ],
+        'tips': [
+            'Die Einstellung gilt pro Projekt – jedes Projekt hat sein eigenes Menü.',
+            'Neu hinzukommende Module sind zunächst überall sichtbar.',
+        ],
+    },
+    '/settings': {
+        'title': 'Einstellungen',
+        'what': 'App-weite Optionen: GitHub-Zugang für die PR-Sicht, Vorgaben für '
+                'neue Crew/Sprints, Währung sowie Export/Import und Zurücksetzen '
+                'der Daten.',
+        'steps': [
+            'GitHub-Repo (owner/name) eintragen, damit der Leitstand die richtigen PRs zeigt.',
+            'Vorgaben anpassen – sie gelten nur für neu angelegte Einträge.',
+            'Vor größeren Änderungen einen Export herunterladen.',
+        ],
+        'tips': [
+            'Alles wird in pm.json gespeichert und wirkt sofort.',
+            'Der Token liegt im Klartext in der Datei – auf geteilten Servern '
+            'lieber die Umgebungsvariable GITHUB_TOKEN nutzen.',
+        ],
+    },
 }
 
 
