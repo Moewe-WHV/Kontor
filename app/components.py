@@ -41,6 +41,7 @@ NAV_GROUPS = [
     ('nav.grp.voyage', [
         ('nav.board', 'view_kanban', '/board'),
         ('nav.sprints', 'flag', '/sprints'),
+        ('nav.poker', 'style', '/poker'),
         ('nav.capacity', 'groups', '/capacity'),
         ('nav.absences', 'beach_access', '/absences'),
         ('nav.standup', 'record_voice_over', '/standup'),
@@ -368,6 +369,11 @@ def task_dialog(task: Task | None = None, *, default_sprint: str | None = None,
                                value=default_status if is_new else task.status).props('outlined dense').classes('grow')
             estimate = ui.number('Schaetzung (h)', value=0 if is_new else task.estimate_h,
                                  min=0, step=0.5, format='%.1f').props('outlined dense').classes('grow')
+            if not is_new:
+                ui.button(icon='style', on_click=lambda: (
+                    app.storage.user.update(poker_prefill_task=task.id),
+                    dialog.close(), ui.navigate.to('/poker'))) \
+                    .props('flat dense round').tooltip('Im Planning Poker schaetzen')
         with ui.row().classes('w-full gap-2'):
             assignee = ui.select(members, label='Zustaendig',
                                  value='' if is_new or not task.assignee_id else task.assignee_id) \

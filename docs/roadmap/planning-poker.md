@@ -1,5 +1,8 @@
 # Planning Poker
 
+**Status: umgesetzt** – siehe `app/views/poker.py`. Diese Notiz bleibt als
+Hintergrund/Kontext zum urspruenglichen Plan stehen.
+
 ## Ziel
 Gemeinsames Schaetzen von Story-Stunden/Punkten im Sprint-Planning
 (Karten verdeckt waehlen, dann gemeinsam aufdecken).

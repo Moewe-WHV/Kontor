@@ -23,7 +23,7 @@ from nicegui import app as nicegui_app
 from store import store
 from views import (absences, board, budget, burndown, calendar, capacity, changes,
                    charter, dashboard, documents, environments, handbook, ideas, incidents,
-                   lessons, meetings, metrics, milestones, modules, okrs, one_on_ones,
+                   lessons, meetings, metrics, milestones, modules, okrs, one_on_ones, poker,
                    portfolio, projects, quality, raci, raid, releases, requirements, retro,
                    roadmap, roles, settings, sprints, stakeholders, standup, status, team,
                    timelog, today, users, vendors, wetter)
@@ -35,7 +35,7 @@ ROUTES = {
     '/budget': budget, '/calendar': calendar,
     '/charter': charter, '/requirements': requirements, '/roadmap': roadmap,
     '/milestones': milestones, '/okrs': okrs, '/raci': raci,
-    '/board': board, '/sprints': sprints, '/capacity': capacity, '/absences': absences,
+    '/board': board, '/sprints': sprints, '/poker': poker, '/capacity': capacity, '/absences': absences,
     '/standup': standup, '/timelog': timelog, '/burndown': burndown,
     '/quality': quality, '/environments': environments, '/incidents': incidents,
     '/stakeholders': stakeholders, '/meetings': meetings, '/changes': changes,

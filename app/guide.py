@@ -191,6 +191,20 @@ PAGES: dict[str, dict] = {
             'Immer nur ein Sprint aktiv.',
         ],
     },
+    '/poker': {
+        'title': 'Planning Poker',
+        'what': 'Gemeinsam Aufwand schaetzen, ohne dass sich die erste genannte Zahl '
+                'ankert: jede Person waehlt verdeckt eine Karte, erst danach wird '
+                'aufgedeckt. Der Stand gilt fuer alle, die die Seite gerade offen haben – '
+                'nicht gespeichert, bis eine Schaetzung uebernommen wird.',
+        'steps': [
+            'Task auswaehlen (oben in der Kopfzeile: "als wer arbeitest du" setzen).',
+            'Karte waehlen – erst nach dem Aufdecken sichtbar fuer andere.',
+            '„Aufdecken", bei grosser Abweichung kurz diskutieren und neu schaetzen.',
+            'Wert per Klick als Task-Schaetzung uebernehmen.',
+        ],
+        'tips': ['„?" fuer "brauche mehr Infos", „☕" zum Ueberspringen/Pause.'],
+    },
     '/capacity': {
         'title': 'Kapazität',
         'what': 'Wie viele Stunden hat jede Person im aktuellen Sprint wirklich '
