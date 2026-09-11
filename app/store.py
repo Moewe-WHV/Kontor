@@ -95,6 +95,11 @@ class Project:
     # v2: Bereiche, die fuer dieses Projekt ausgeblendet sind (Pfade, z. B. '/okrs').
     # Leer = alle Module sichtbar; neue Module erscheinen automatisch.
     disabled_modules: list[str] = field(default_factory=list)
+    # Solo vs. Team: steuert nur die Vorbelegung des Setup-Wizards / ein
+    # kleines Badge – erzwingt sonst nichts (disabled_modules bleibt die
+    # eigentliche Quelle der Wahrheit).
+    mode: str = 'team'          # 'solo' | 'team'
+    creator_role: str = ''      # freie Rolle der anlegenden Person (informativ)
 
 
 RAG = {'gruen': ('Grün', '#3d7a5d'), 'gelb': ('Gelb', '#cf8a2e'), 'rot': ('Rot', '#a63a3a')}

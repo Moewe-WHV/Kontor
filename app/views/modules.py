@@ -29,6 +29,14 @@ PRESETS: dict[str, set[str]] = {
         '/changes', '/raid', '/documents', '/vendors', '/wetter', '/retro',
         '/lessons', '/one-on-ones', '/ideas', '/environments', '/incidents',
     },
+    # Nur Bereiche aus, die zwingend mehrere Personen voraussetzen (Kapazitaet,
+    # Abwesenheiten, Standup, Retro, Team-Wetter, 1:1s, RACI). Alles, was auch
+    # eine Einzelperson braucht – Stakeholder, Budget, Releases, Qualitaet,
+    # Steckbrief usw. – bleibt an.
+    'Solo (Einzelkämpfer)': {
+        '/capacity', '/absences', '/standup', '/retro', '/wetter',
+        '/one-on-ones', '/raci',
+    },
 }
 
 
