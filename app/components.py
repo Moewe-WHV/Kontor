@@ -72,6 +72,7 @@ NAV_GROUPS = [
         ('nav.projects', 'inventory_2', '/projects'),
         ('nav.team', 'badge', '/team'),
         ('nav.modules', 'tune', '/modules'),
+        ('nav.users', 'admin_panel_settings', '/users'),
         ('nav.settings', 'settings', '/settings'),
     ]),
 ]
@@ -148,7 +149,8 @@ def frame(active_path: str):
     with drawer:
         for group, items in NAV_GROUPS:
             visible = [it for it in items
-                       if store.module_enabled(it[2], member_id=mid) or it[2] == active_path]
+                       if (store.module_enabled(it[2], member_id=mid) or it[2] == active_path)
+                       and (it[2] != '/users' or auth.has_role('admin'))]
             if not visible:
                 continue
             group_active = any(path == active_path for _, _, path in visible)

@@ -69,6 +69,7 @@ LANGS: dict[str, dict[str, str]] = {
         'nav.projects': 'Projekte',
         'nav.team': 'Crew',
         'nav.modules': 'Module',
+        'nav.users': 'Nutzer & Rechte',
         'nav.settings': 'Einstellungen',
 
         # -- Header / App-Rahmen ---------------------------------------
@@ -301,6 +302,7 @@ LANGS: dict[str, dict[str, str]] = {
         'nav.projects': 'Projects',
         'nav.team': 'Crew',
         'nav.modules': 'Modules',
+        'nav.users': 'Users & Roles',
         'nav.settings': 'Settings',
 
         # -- Header / App chrome ---------------------------------------
