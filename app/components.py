@@ -8,7 +8,7 @@ from nicegui import app, ui
 import auth
 import guide
 import theme
-from store import PRIORITIES, PRIORITY_COLOR, STATUS_LABELS, STATUSES, Task, store
+from store import PRIORITIES, PRIORITY_COLOR, PROJECT_MODE, STATUS_LABELS, STATUSES, Task, store
 
 # Navigation – Gruppen mit maritimem Anstrich, Funktion bleibt klar
 NAV_GROUPS = [
@@ -92,6 +92,10 @@ def frame(active_path: str):
             ui.select({p.id: f'{p.key or "·"}  {p.name}' for p in projects},
                       value=store.current_project_id, on_change=_switch_project) \
                 .props('dense options-dense borderless dark').classes('ml-3 min-w-[13rem]')
+            if store.project:
+                _, mode_icon = PROJECT_MODE.get(store.project.mode, PROJECT_MODE['team'])
+                ui.icon(mode_icon, size='18px').classes('opacity-70') \
+                    .tooltip('Solo-Projekt' if store.project.mode == 'solo' else 'Team-Projekt')
         ui.space()
         sp = store.active_sprint
         ui.badge(f'Kurs: {sp.name}' if sp else 'vor Anker').props('color=accent text-color=dark')
