@@ -21,7 +21,7 @@ from pathlib import Path
 
 DATA_FILE = Path(__file__).parent / 'data' / 'pm.json'
 SCHEMA = 5  # bei Aenderung der Modelle hochzaehlen -> alte Datei wird gesichert & neu geseedet
-VERSION = '2.0'
+VERSION = '2.1'
 
 # App-weite Einstellungen (liegen mit in pm.json unter "settings").
 # Reine Zusatzdaten – kein Schema-Bump noetig, fehlende Schluessel werden ergaenzt.
