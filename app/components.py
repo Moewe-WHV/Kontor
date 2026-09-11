@@ -9,7 +9,7 @@ import auth
 import guide
 import theme
 from i18n import t
-from store import PRIORITIES, PRIORITY_COLOR, STATUS_LABELS, STATUSES, Task, store
+from store import PRIORITIES, PRIORITY_COLOR, PROJECT_MODE, STATUS_LABELS, STATUSES, Task, store
 
 # Navigation – Gruppen mit maritimem Anstrich, Funktion bleibt klar.
 # Gruppen- und Eintrags-"Labels" sind i18n-Schluessel (siehe i18n.py), keine
@@ -81,6 +81,31 @@ def apply_theme() -> None:
     theme.apply()
 
 
+# --------------------------------------------------------------------------
+# Multiuser (leichtgewichtig): "als wer" arbeitet diese Browser-Session gerade?
+# Es gibt weiterhin nur ein gemeinsames App-Login (auth.py) – diese Auswahl ist
+# rein session-lokal (app.storage.user) und steuert nur, welche Module/Rechte
+# store.is_leader() greifen laesst. Solo-Projekte sind davon nie betroffen.
+# --------------------------------------------------------------------------
+def acting_member_id() -> str | None:
+    try:
+        mid = app.storage.user.get('acting_member_id')
+    except Exception:  # noqa: BLE001 – kein Storage-Kontext (z. B. Tests)
+        return None
+    return mid if any(m.id == mid for m in store.active_members) else None
+
+
+def _set_acting_member(mid: str) -> None:
+    app.storage.user['acting_member_id'] = mid
+    ui.navigate.reload()
+
+
+def viewer_is_leader(pid: str | None = None) -> bool:
+    """Darf die aktuelle Session (Auswahl oben im Header) Rollen aendern /
+    Fuehrungsbereiche sehen? Siehe store.is_leader fuer die Details."""
+    return store.is_leader(pid, acting_member_id())
+
+
 @contextmanager
 def frame(active_path: str):
     dark = theme.apply()
@@ -97,6 +122,17 @@ def frame(active_path: str):
             ui.select({p.id: f'{p.key or "·"}  {p.name}' for p in projects},
                       value=store.current_project_id, on_change=_switch_project) \
                 .props('dense options-dense borderless dark').classes('ml-3 min-w-[13rem]')
+            if store.project:
+                _, mode_icon = PROJECT_MODE.get(store.project.mode, PROJECT_MODE['team'])
+                ui.icon(mode_icon, size='18px').classes('opacity-70') \
+                    .tooltip('Solo-Projekt' if store.project.mode == 'solo' else 'Team-Projekt')
+                if store.project.mode == 'team' and store.active_members:
+                    mid = acting_member_id()
+                    options = {'': '– wer bist du? –', **{m.id: m.name for m in store.active_members}}
+                    ui.select(options, value=mid or '', on_change=lambda e: _set_acting_member(e.value)) \
+                        .props('dense options-dense borderless dark') \
+                        .classes('ml-2 min-w-[8rem]') \
+                        .tooltip('Als wer arbeitest du gerade? Steuert, welche Bereiche du siehst.')
         ui.space()
         sp = store.active_sprint
         ui.badge(t('app.sprint_badge', name=sp.name) if sp else t('app.no_sprint_badge')) \
@@ -108,10 +144,11 @@ def frame(active_path: str):
             ui.button(icon='logout', on_click=auth.logout) \
                 .props('flat round color=white').tooltip(t('app.logout_tooltip'))
 
+    mid = acting_member_id()
     with drawer:
         for group, items in NAV_GROUPS:
             visible = [it for it in items
-                       if store.module_enabled(it[2]) or it[2] == active_path]
+                       if store.module_enabled(it[2], member_id=mid) or it[2] == active_path]
             if not visible:
                 continue
             group_active = any(path == active_path for _, _, path in visible)
@@ -120,7 +157,7 @@ def frame(active_path: str):
             with exp:
                 for label, icon, path in visible:
                     active = path == active_path
-                    off = not store.module_enabled(path)
+                    off = not store.module_enabled(path, member_id=mid)
                     row = ui.row().classes(
                         'nav-item w-full items-center gap-3 px-2 py-1 rounded-lg cursor-pointer no-wrap '
                         + ('nav-active' if active else '') + (' opacity-50' if off else ''))
@@ -142,6 +179,12 @@ def frame(active_path: str):
                     ui.button(t('app.manage_modules'), icon='tune',
                               on_click=lambda: ui.navigate.to('/modules')) \
                         .props('flat dense no-caps size=sm')
+        elif not store.module_enabled(active_path, member_id=mid):
+            with ui.card().classes('w-full bg-amber-1 border border-amber-3 gap-1'):
+                with ui.row().classes('items-center gap-2'):
+                    ui.icon('lock').classes('text-amber-9')
+                    ui.label('Dieser Bereich ist nur für die Teamleitung sichtbar.') \
+                        .classes('text-sm')
         yield
 
     _maybe_welcome()
