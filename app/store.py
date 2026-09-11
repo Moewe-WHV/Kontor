@@ -8,7 +8,10 @@ haben eine ``project_id``; Crew, Abwesenheiten und Standups sind teamweit.
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
+import secrets
 import shutil
 import threading
 import uuid
@@ -63,6 +66,70 @@ def today_iso() -> str:
 
 def _d(value: str | None) -> date | None:
     return date.fromisoformat(value) if value else None
+
+
+# --------------------------------------------------------------------------
+# Nutzer / Rollen (RBAC) – Grundlage fuer "Security, Multi-User & Ops".
+# --------------------------------------------------------------------------
+# Einfache, geordnete Rollenliste: hoeherer Index = mehr Rechte.
+# 'viewer' darf lesen, 'member' darf im Tagesgeschaeft mitarbeiten,
+# 'admin' darf Nutzer, Einstellungen und Struktur (Projekte/Module) aendern.
+ROLES = ['viewer', 'member', 'admin']
+
+_PBKDF2_ALGO = 'pbkdf2_sha256'
+_PBKDF2_ITERATIONS = 260_000  # Stand 2026 ein akzeptabler OWASP-Richtwert fuer PBKDF2-SHA256
+
+
+def hash_password(password: str) -> str:
+    """Passwort-Hash im Format ``pbkdf2_sha256$<iterationen>$<salt-hex>$<hash-hex>``.
+
+    Bewusst stdlib-``hashlib.pbkdf2_hmac`` statt einer neuen Abhaengigkeit
+    (z. B. passlib/bcrypt) – pro Nutzer ein zufaelliger Salt, kein Klartext,
+    kein reines sha256 ohne Salt/Iterationen.
+    """
+    salt = secrets.token_hex(16)
+    dk = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), bytes.fromhex(salt), _PBKDF2_ITERATIONS)
+    return f'{_PBKDF2_ALGO}${_PBKDF2_ITERATIONS}${salt}${dk.hex()}'
+
+
+def verify_password(password: str, encoded: str) -> bool:
+    """Konstante-Zeit-Vergleich gegen einen mit :func:`hash_password` erzeugten Hash."""
+    if not encoded:
+        return False
+    try:
+        algo, iterations, salt, hash_hex = encoded.split('$')
+        if algo != _PBKDF2_ALGO:
+            return False
+        dk = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), bytes.fromhex(salt), int(iterations))
+        return hmac.compare_digest(dk.hex(), hash_hex)
+    except (ValueError, TypeError):
+        return False
+
+
+def role_at_least(role: str | None, minimum: str) -> bool:
+    """True, wenn ``role`` mindestens so viele Rechte hat wie ``minimum`` (siehe ROLES)."""
+    try:
+        return ROLES.index(role) >= ROLES.index(minimum)  # type: ignore[arg-type]
+    except (ValueError, TypeError):
+        return False
+
+
+@dataclass
+class User:
+    """Lokaler Account oder per OIDC verknuepfter Nutzer (siehe app/auth.py, app/oidc.py).
+
+    ``password_hash`` ist leer bei reinen OIDC-Nutzern (kein lokales Passwort).
+    ``oidc_sub`` ist das stabile "subject" des Identity Providers, sobald der
+    Account einmal per SSO angemeldet wurde.
+    """
+    id: str
+    username: str
+    display_name: str = ''
+    password_hash: str = ''
+    role: str = 'viewer'
+    active: bool = True
+    oidc_sub: str | None = None
+    created_at: str = field(default_factory=today_iso)
 
 
 # --------------------------------------------------------------------------
@@ -617,6 +684,7 @@ class Lesson:
 
 
 _MODELS = {
+    'users': User,
     'projects': Project, 'members': Member, 'sprints': Sprint, 'tasks': Task,
     'capacities': Capacity, 'worklogs': WorkLog, 'standups': Standup,
     'retro_notes': RetroNote, 'action_items': ActionItem, 'absences': Absence,
@@ -730,6 +798,46 @@ class Store:
 
     def by_id(self, listname: str, oid: str | None):
         return next((x for x in getattr(self, listname) if x.id == oid), None)
+
+    # -- Nutzer / Auth (RBAC) --------------------------------------------
+    def user_by_username(self, username: str | None) -> User | None:
+        if not username:
+            return None
+        return next((u for u in self.users if u.username.lower() == username.lower()), None)
+
+    def user_by_oidc_sub(self, sub: str | None) -> User | None:
+        if not sub:
+            return None
+        return next((u for u in self.users if u.oidc_sub == sub), None)
+
+    def add_user(self, *, username: str, password: str | None = None, display_name: str = '',
+                 role: str = 'viewer', active: bool = True, oidc_sub: str | None = None) -> User:
+        u = User(id=_uid(), username=username, display_name=display_name or username,
+                 password_hash=hash_password(password) if password else '',
+                 role=role, active=active, oidc_sub=oidc_sub)
+        self.users.append(u)
+        self.save()
+        return u
+
+    def set_user_password(self, user: User, password: str) -> None:
+        user.password_hash = hash_password(password)
+        self.save()
+
+    def set_user_role(self, user: User, role: str) -> None:
+        if role in ROLES:
+            user.role = role
+            self.save()
+
+    def set_user_active(self, user: User, active: bool) -> None:
+        user.active = active
+        self.save()
+
+    def verify_login(self, username: str, password: str) -> User | None:
+        """Lokalen Login pruefen. Gibt den Nutzer nur bei aktivem Konto + korrektem Passwort zurueck."""
+        u = self.user_by_username(username)
+        if not u or not u.active or not u.password_hash:
+            return None
+        return u if verify_password(password, u.password_hash) else None
 
     # -- Projekte -------------------------------------------------------
     @property
@@ -1034,7 +1142,12 @@ class Store:
         self.save()
 
     def reset(self, *, demo: bool) -> None:
+        # 'users' bewusst NICHT leeren: sonst sperrt sich ein Admin per Klick auf
+        # "Alles leeren" selbst aus (Migrations-Bootstrap greift nur einmalig beim
+        # allerersten Start, siehe auth.py _bootstrap_users).
         for key in _MODELS:
+            if key == 'users':
+                continue
             setattr(self, key, [])
         self.current_project_id = None
         if demo:

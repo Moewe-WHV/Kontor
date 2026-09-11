@@ -19,12 +19,14 @@ import os
 from nicegui import ui
 
 import auth
+from nicegui import app as nicegui_app
+from store import store
 from views import (absences, board, budget, burndown, calendar, capacity, changes,
                    charter, dashboard, documents, environments, handbook, ideas, incidents,
                    lessons, meetings, metrics, milestones, modules, okrs, one_on_ones,
                    portfolio, projects, quality, raci, raid, releases, requirements, retro,
                    roadmap, roles, settings, sprints, stakeholders, standup, status, team,
-                   timelog, today, vendors, wetter)
+                   timelog, today, users, vendors, wetter)
 
 ROUTES = {
     '/': dashboard,
@@ -41,7 +43,21 @@ ROUTES = {
     '/retro': retro, '/wetter': wetter, '/lessons': lessons,
     '/ideas': ideas, '/one-on-ones': one_on_ones,
     '/projects': projects, '/team': team, '/modules': modules, '/settings': settings,
+    '/users': users,
 }
+
+
+@nicegui_app.get('/healthz')
+def _healthz():
+    """Liveness: der Prozess laeuft. Kein Datenzugriff, damit das immer schnell antwortet."""
+    return {'status': 'ok'}
+
+
+@nicegui_app.get('/readyz')
+def _readyz():
+    """Readiness: Datenhaltung ist geladen und ein aktuelles Projekt steht bereit."""
+    ready = store.current_project_id is not None or not store.projects
+    return {'status': 'ok' if ready else 'starting'}
 
 
 def _register(path, mod) -> None:
