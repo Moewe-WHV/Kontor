@@ -12,6 +12,7 @@ from __future__ import annotations
 from nicegui import ui
 
 from components import NAV_GROUPS, frame, help_hint
+from i18n import t
 from store import CORE_MODULES, store
 
 # Ein paar sinnvolle Startpakete für neue Projekte.
@@ -76,17 +77,17 @@ def content() -> None:
         if not extra and not core:
             continue
         with ui.card().classes('w-full gap-1'):
-            ui.label(group).classes('kontor-title text-sm text-grey-7 uppercase tracking-widest')
+            ui.label(t(group)).classes('kontor-title text-sm text-grey-7 uppercase tracking-widest')
             for label, icon, path in core:
                 with ui.row().classes('w-full items-center gap-2 no-wrap opacity-60'):
                     ui.icon(icon).classes('text-lg')
-                    ui.label(label).classes('text-sm grow')
+                    ui.label(t(label)).classes('text-sm grow')
                     ui.icon('lock', size='16px').classes('text-grey-5').tooltip('Kernbereich – immer sichtbar')
             for label, icon, path in extra:
                 on = path not in disabled
                 with ui.row().classes('w-full items-center gap-2 no-wrap'):
                     ui.icon(icon).classes('text-lg ' + ('' if on else 'text-grey-5'))
-                    ui.label(label).classes('text-sm grow ' + ('' if on else 'text-grey-5'))
+                    ui.label(t(label)).classes('text-sm grow ' + ('' if on else 'text-grey-5'))
                     ui.switch(value=on,
                               on_change=lambda e, pth=path: _toggle(pth, bool(e.value)))
 
