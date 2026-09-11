@@ -104,6 +104,9 @@ class Project:
 
 RAG = {'gruen': ('Grün', '#3d7a5d'), 'gelb': ('Gelb', '#cf8a2e'), 'rot': ('Rot', '#a63a3a')}
 
+# Solo vs. Team – Label + Icon fuers Badge (Projektliste, Kopfzeile).
+PROJECT_MODE = {'solo': ('Solo', 'person'), 'team': ('Team', 'groups')}
+
 # Module (Seiten), die immer sichtbar bleiben – ohne sie ist der Leitstand unbenutzbar.
 CORE_MODULES = {'/', '/today', '/roles', '/handbook', '/projects', '/team', '/settings', '/modules'}
 
