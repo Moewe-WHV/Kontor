@@ -8,7 +8,7 @@ from store import store
 
 
 def _eur(x: float) -> str:
-    return f'{x:,.0f} €'.replace(',', '.')
+    return f'{x:,.0f} {store.setting("currency")}'.replace(',', '.')
 
 
 @ui.refreshable

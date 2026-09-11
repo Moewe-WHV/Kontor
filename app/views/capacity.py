@@ -76,7 +76,7 @@ def content() -> None:
 
 def page() -> None:
     with frame('/capacity'):
-        ui.label('Kapazitaetsmeldung').classes('text-xl font-bold')
+        ui.label('Kapazitätsmeldung').classes('text-xl font-bold')
         ui.label('Jede Person meldet ihre real verfuegbaren Stunden fuer den Sprint '
                  '(Urlaub, Meetings, Support schon abgezogen). Feld verlassen speichert.') \
             .classes('text-xs text-grey-5')

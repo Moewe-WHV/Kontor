@@ -23,10 +23,11 @@ def _sprint_form(existing=None) -> None:
         goal = ui.textarea('Sprint-Ziel', value='' if is_new else existing.goal) \
             .props('outlined dense autogrow').classes('w-full')
         start = date.today() + timedelta(days=(0 - date.today().weekday()) % 7)
+        span = max(1, int(store.setting('default_sprint_days', 14))) - 1
         with ui.row().classes('w-full gap-2'):
             s_start = ui.input('Start', value=start.isoformat() if is_new else existing.start) \
                 .props('outlined dense type=date').classes('grow')
-            s_end = ui.input('Ende', value=(start + timedelta(days=11)).isoformat() if is_new else existing.end) \
+            s_end = ui.input('Ende', value=(start + timedelta(days=span)).isoformat() if is_new else existing.end) \
                 .props('outlined dense type=date').classes('grow')
 
         def save() -> None:

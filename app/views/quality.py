@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from nicegui import ui
 
-from components import avatar, frame, stat_tile
+from components import avatar, chart_opts, frame, stat_tile
 from store import BUG_SEVERITY, BUG_STATUS, Bug, store, today_iso
 
 SEV_COLOR = {'kritisch': '#a63a3a', 'hoch': '#cf8a2e', 'mittel': '#5b8ca3', 'niedrig': '#8ba1a8'}
@@ -83,13 +83,13 @@ def content() -> None:
 
     with ui.card().classes('w-full'):
         ui.label('Offene Bugs nach Schwere').classes('kontor-title text-sm')
-        ui.echart({
-            'grid': {'left': 40, 'right': 15, 'top': 10, 'bottom': 25},
+        ui.echart(chart_opts({
+            'grid': {'left': 40, 'right': 15, 'top': 15, 'bottom': 25},
             'xAxis': {'type': 'category', 'data': [BUG_SEVERITY[s] for s in BUG_SEVERITY]},
             'yAxis': {'type': 'value'},
             'series': [{'type': 'bar', 'data': [
                 {'value': q['by_sev'][s], 'itemStyle': {'color': SEV_COLOR[s]}} for s in BUG_SEVERITY]}],
-        }).classes('w-full h-48')
+        })).classes('w-full h-48')
 
     bugs = store.p_bugs()
     with ui.row().classes('items-center gap-2'):

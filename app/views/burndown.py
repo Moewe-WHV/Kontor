@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from nicegui import ui
 
-from components import frame, resolve_sprint, stat_tile
+from components import chart_opts, frame, resolve_sprint, stat_tile
 from store import store
 
 _sel = {'sprint': None}
@@ -43,13 +43,13 @@ def _capacity_option(sp) -> dict:
         cap.append(round(c.hours if c else m.weekly_hours * sp.weeks, 1))
     return {
         'tooltip': {'trigger': 'axis', 'axisPointer': {'type': 'shadow'}},
-        'legend': {'data': ['geplante Last', 'Kapazitaet']},
+        'legend': {'data': ['geplante Last', 'Kapazität']},
         'grid': {'left': 45, 'right': 20, 'top': 40, 'bottom': 30},
         'xAxis': {'type': 'category', 'data': names},
         'yAxis': {'type': 'value', 'name': 'h'},
         'series': [
             {'name': 'geplante Last', 'type': 'bar', 'data': load, 'itemStyle': {'color': '#6366f1'}},
-            {'name': 'Kapazitaet', 'type': 'bar', 'data': cap, 'itemStyle': {'color': '#cbd5e1'}},
+            {'name': 'Kapazität', 'type': 'bar', 'data': cap, 'itemStyle': {'color': '#cbd5e1'}},
         ],
     }
 
@@ -86,11 +86,11 @@ def content() -> None:
 
     with ui.card().classes('w-full'):
         ui.label(f'Burndown · {sp.name}').classes('text-sm font-bold')
-        ui.echart(_burndown_option(sp)).classes('w-full h-72')
+        ui.echart(chart_opts(_burndown_option(sp))).classes('w-full h-72')
 
     with ui.card().classes('w-full'):
         ui.label('Kapazitaet vs. geplante Last je Person').classes('text-sm font-bold')
-        ui.echart(_capacity_option(sp)).classes('w-full h-64')
+        ui.echart(chart_opts(_capacity_option(sp))).classes('w-full h-64')
 
 
 def page() -> None:
