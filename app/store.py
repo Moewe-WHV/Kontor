@@ -100,6 +100,10 @@ class Project:
     # eigentliche Quelle der Wahrheit).
     mode: str = 'team'          # 'solo' | 'team'
     creator_role: str = ''      # freie Rolle der anlegenden Person (informativ)
+    # Team-Projekte: wer darf Rollen aendern & sieht Fuehrungsbereiche (siehe
+    # LEADERSHIP_MODULES)? Leer = noch nicht festgelegt -> permissiv (jede
+    # aktuell "gewaehlte" Person darf es setzen). Solo-Projekte ignorieren das.
+    leader_member_id: str = ''
 
 
 RAG = {'gruen': ('Grün', '#3d7a5d'), 'gelb': ('Gelb', '#cf8a2e'), 'rot': ('Rot', '#a63a3a')}
@@ -109,6 +113,14 @@ PROJECT_MODE = {'solo': ('Solo', 'person'), 'team': ('Team', 'groups')}
 
 # Module (Seiten), die immer sichtbar bleiben – ohne sie ist der Leitstand unbenutzbar.
 CORE_MODULES = {'/', '/today', '/roles', '/handbook', '/projects', '/team', '/settings', '/modules'}
+
+# Team-Projekte: Bereiche, die eher Fuehrungsaufgabe sind und daher fuer Mitglieder
+# ohne Teamleitung ausgeblendet werden (nur relevant, wenn ein leader_member_id
+# gesetzt ist – siehe Store.is_leader). Solo-Projekte sind davon nie betroffen.
+LEADERSHIP_MODULES = {
+    '/charter', '/budget', '/portfolio', '/stakeholders', '/raci',
+    '/vendors', '/changes', '/one-on-ones',
+}
 
 
 @dataclass
@@ -757,14 +769,33 @@ class Store:
         self.save()
 
     # -- Module je Projekt (v2) --------------------------------------
-    def module_enabled(self, path: str, pid: str | None = None) -> bool:
-        """Ist der Bereich ``path`` fuer das Projekt sichtbar?"""
+    def module_enabled(self, path: str, pid: str | None = None, member_id: str | None = None) -> bool:
+        """Ist der Bereich ``path`` fuer das Projekt (und optional die anfragende
+        Person ``member_id``) sichtbar? ``member_id`` steuert zusaetzlich die
+        Fuehrungsbereiche (siehe LEADERSHIP_MODULES / is_leader) – ohne Angabe
+        wird nur die projektweite Ein/Aus-Auswahl geprueft."""
         if path in CORE_MODULES:
             return True
         p = self.by_id('projects', pid or self.current_project_id)
         if p is None:
             return True
-        return path not in (getattr(p, 'disabled_modules', None) or [])
+        if path in (getattr(p, 'disabled_modules', None) or []):
+            return False
+        if member_id is not None and path in LEADERSHIP_MODULES and not self.is_leader(p.id, member_id):
+            return False
+        return True
+
+    def is_leader(self, pid: str | None = None, member_id: str | None = None) -> bool:
+        """Darf ``member_id`` im Projekt ``pid`` Rollen aendern & Fuehrungsbereiche sehen?
+        Solo-Projekte und Team-Projekte ohne festgelegte Teamleitung sind permissiv,
+        damit die Einschraenkung niemanden ungewollt aussperrt."""
+        p = self.by_id('projects', pid or self.current_project_id)
+        if p is None or p.mode == 'solo':
+            return True
+        leader = getattr(p, 'leader_member_id', '')
+        if not leader:
+            return True
+        return member_id == leader
 
     def set_module(self, path: str, enabled: bool, pid: str | None = None) -> None:
         p = self.by_id('projects', pid or self.current_project_id)

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from nicegui import ui
 
-from components import NAV_GROUPS, frame, help_hint
+from components import NAV_GROUPS, frame, help_hint, viewer_is_leader
 from store import CORE_MODULES, store
 
 # Ein paar sinnvolle Startpakete für neue Projekte.
@@ -61,11 +61,16 @@ def content() -> None:
     disabled = set(getattr(p, 'disabled_modules', None) or [])
     all_paths = _all_module_paths()
     active_n = len(all_paths) - len([x for x in disabled if x in all_paths])
+    can_edit = p.mode == 'solo' or viewer_is_leader(p.id)
 
     help_hint('Schalter aus = der Bereich verschwindet aus dem Menü dieses Projekts. '
               'Die Daten bleiben erhalten und sind nach dem Wiedereinschalten sofort '
               'wieder da. Andere Projekte sind nicht betroffen.',
               title='Wie das funktioniert')
+
+    if not can_edit:
+        help_hint('Nur die Teamleitung dieses Projekts kann die Modul-Auswahl ändern. '
+                   'Du siehst hier den aktuellen Stand.', title='Nur lesend')
 
     with ui.card().classes('w-full gap-2'):
         with ui.row().classes('w-full items-center gap-2 flex-wrap'):
@@ -73,10 +78,11 @@ def content() -> None:
             ui.badge(f'{active_n} von {len(all_paths)} Zusatz-Modulen aktiv') \
                 .props('color=primary')
             ui.space()
-            ui.label('Vorlage:').classes('text-xs text-grey-6')
-            for name in PRESETS:
-                ui.button(name, on_click=lambda n=name: _apply_preset(n)) \
-                    .props('flat dense no-caps size=sm')
+            if can_edit:
+                ui.label('Vorlage:').classes('text-xs text-grey-6')
+                for name in PRESETS:
+                    ui.button(name, on_click=lambda n=name: _apply_preset(n)) \
+                        .props('flat dense no-caps size=sm')
 
     for group, items in NAV_GROUPS:
         extra = [(label, icon, path) for label, icon, path in items if path not in CORE_MODULES]
@@ -95,8 +101,9 @@ def content() -> None:
                 with ui.row().classes('w-full items-center gap-2 no-wrap'):
                     ui.icon(icon).classes('text-lg ' + ('' if on else 'text-grey-5'))
                     ui.label(label).classes('text-sm grow ' + ('' if on else 'text-grey-5'))
-                    ui.switch(value=on,
-                              on_change=lambda e, pth=path: _toggle(pth, bool(e.value)))
+                    sw = ui.switch(value=on,
+                                   on_change=lambda e, pth=path: _toggle(pth, bool(e.value)))
+                    sw.set_enabled(can_edit)
 
 
 def _toggle(path: str, enabled: bool) -> None:

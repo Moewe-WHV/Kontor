@@ -76,6 +76,31 @@ def apply_theme() -> None:
     theme.apply()
 
 
+# --------------------------------------------------------------------------
+# Multiuser (leichtgewichtig): "als wer" arbeitet diese Browser-Session gerade?
+# Es gibt weiterhin nur ein gemeinsames App-Login (auth.py) – diese Auswahl ist
+# rein session-lokal (app.storage.user) und steuert nur, welche Module/Rechte
+# store.is_leader() greifen laesst. Solo-Projekte sind davon nie betroffen.
+# --------------------------------------------------------------------------
+def acting_member_id() -> str | None:
+    try:
+        mid = app.storage.user.get('acting_member_id')
+    except Exception:  # noqa: BLE001 – kein Storage-Kontext (z. B. Tests)
+        return None
+    return mid if any(m.id == mid for m in store.active_members) else None
+
+
+def _set_acting_member(mid: str) -> None:
+    app.storage.user['acting_member_id'] = mid
+    ui.navigate.reload()
+
+
+def viewer_is_leader(pid: str | None = None) -> bool:
+    """Darf die aktuelle Session (Auswahl oben im Header) Rollen aendern /
+    Fuehrungsbereiche sehen? Siehe store.is_leader fuer die Details."""
+    return store.is_leader(pid, acting_member_id())
+
+
 @contextmanager
 def frame(active_path: str):
     dark = theme.apply()
@@ -96,6 +121,13 @@ def frame(active_path: str):
                 _, mode_icon = PROJECT_MODE.get(store.project.mode, PROJECT_MODE['team'])
                 ui.icon(mode_icon, size='18px').classes('opacity-70') \
                     .tooltip('Solo-Projekt' if store.project.mode == 'solo' else 'Team-Projekt')
+                if store.project.mode == 'team' and store.active_members:
+                    mid = acting_member_id()
+                    options = {'': '– wer bist du? –', **{m.id: m.name for m in store.active_members}}
+                    ui.select(options, value=mid or '', on_change=lambda e: _set_acting_member(e.value)) \
+                        .props('dense options-dense borderless dark') \
+                        .classes('ml-2 min-w-[8rem]') \
+                        .tooltip('Als wer arbeitest du gerade? Steuert, welche Bereiche du siehst.')
         ui.space()
         sp = store.active_sprint
         ui.badge(f'Kurs: {sp.name}' if sp else 'vor Anker').props('color=accent text-color=dark')
@@ -106,10 +138,11 @@ def frame(active_path: str):
             ui.button(icon='logout', on_click=auth.logout) \
                 .props('flat round color=white').tooltip('Abmelden')
 
+    mid = acting_member_id()
     with drawer:
         for group, items in NAV_GROUPS:
             visible = [it for it in items
-                       if store.module_enabled(it[2]) or it[2] == active_path]
+                       if store.module_enabled(it[2], member_id=mid) or it[2] == active_path]
             if not visible:
                 continue
             group_active = any(path == active_path for _, _, path in visible)
@@ -118,7 +151,7 @@ def frame(active_path: str):
             with exp:
                 for label, icon, path in visible:
                     active = path == active_path
-                    off = not store.module_enabled(path)
+                    off = not store.module_enabled(path, member_id=mid)
                     row = ui.row().classes(
                         'nav-item w-full items-center gap-3 px-2 py-1 rounded-lg cursor-pointer no-wrap '
                         + ('nav-active' if active else '') + (' opacity-50' if off else ''))
@@ -132,7 +165,7 @@ def frame(active_path: str):
     with ui.column().classes('w-full max-w-6xl mx-auto p-4 gap-3'):
         if not store.project:
             ui.label('Noch kein Projekt – lege in der Werft eines an.').classes('text-grey-6')
-        elif not store.module_enabled(active_path):
+        elif active_path in (getattr(store.project, 'disabled_modules', None) or []):
             with ui.card().classes('w-full bg-amber-1 border border-amber-3 gap-1'):
                 with ui.row().classes('items-center gap-2'):
                     ui.icon('visibility_off').classes('text-amber-9')
@@ -141,6 +174,12 @@ def frame(active_path: str):
                     ui.button('Module verwalten', icon='tune',
                               on_click=lambda: ui.navigate.to('/modules')) \
                         .props('flat dense no-caps size=sm')
+        elif not store.module_enabled(active_path, member_id=mid):
+            with ui.card().classes('w-full bg-amber-1 border border-amber-3 gap-1'):
+                with ui.row().classes('items-center gap-2'):
+                    ui.icon('lock').classes('text-amber-9')
+                    ui.label('Dieser Bereich ist nur für die Teamleitung sichtbar.') \
+                        .classes('text-sm')
         yield
 
     _maybe_welcome()
