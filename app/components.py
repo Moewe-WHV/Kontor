@@ -8,66 +8,71 @@ from nicegui import app, ui
 import auth
 import guide
 import theme
+from i18n import t
 from store import PRIORITIES, PRIORITY_COLOR, STATUS_LABELS, STATUSES, Task, store
 
-# Navigation – Gruppen mit maritimem Anstrich, Funktion bleibt klar
+# Navigation – Gruppen mit maritimem Anstrich, Funktion bleibt klar.
+# Gruppen- und Eintrags-"Labels" sind i18n-Schluessel (siehe i18n.py), keine
+# fertigen Anzeigetexte – alle drei Konsumenten (frame() unten, handbook.py,
+# modules.py) geben sie durch t() aus, damit die Navigation in beiden
+# Sprachen konsistent bleibt.
 NAV_GROUPS = [
-    ('Lotse (Start hier)', [
-        ('Fahrplan heute', 'explore', '/today'),
-        ('Rollen & Ablauf', 'assignment_ind', '/roles'),
-        ('Anleitung', 'menu_book', '/handbook'),
+    ('nav.grp.pilot', [
+        ('nav.today', 'explore', '/today'),
+        ('nav.roles', 'assignment_ind', '/roles'),
+        ('nav.handbook', 'menu_book', '/handbook'),
     ]),
-    ('Ausguck', [
-        ('Leitstand', 'dashboard', '/'),
-        ('Flotte', 'sailing', '/portfolio'),
-        ('Statusbericht', 'description', '/status'),
-        ('Metriken', 'insights', '/metrics'),
-        ('Budget & Kosten', 'euro', '/budget'),
-        ('Seekarte', 'calendar_month', '/calendar'),
+    ('nav.grp.lookout', [
+        ('nav.dashboard', 'dashboard', '/'),
+        ('nav.portfolio', 'sailing', '/portfolio'),
+        ('nav.status', 'description', '/status'),
+        ('nav.metrics', 'insights', '/metrics'),
+        ('nav.budget', 'euro', '/budget'),
+        ('nav.calendar', 'calendar_month', '/calendar'),
     ]),
-    ('Kurs setzen', [
-        ('Steckbrief', 'assignment', '/charter'),
-        ('Anforderungen', 'checklist', '/requirements'),
-        ('Roadmap', 'timeline', '/roadmap'),
-        ('Meilensteine', 'outlined_flag', '/milestones'),
-        ('OKRs / Ziele', 'flag_circle', '/okrs'),
-        ('RACI', 'grid_on', '/raci'),
+    ('nav.grp.course', [
+        ('nav.charter', 'assignment', '/charter'),
+        ('nav.requirements', 'checklist', '/requirements'),
+        ('nav.roadmap', 'timeline', '/roadmap'),
+        ('nav.milestones', 'outlined_flag', '/milestones'),
+        ('nav.okrs', 'flag_circle', '/okrs'),
+        ('nav.raci', 'grid_on', '/raci'),
     ]),
-    ('Törn', [
-        ('Board', 'view_kanban', '/board'),
-        ('Sprint-Planung', 'flag', '/sprints'),
-        ('Kapazität', 'groups', '/capacity'),
-        ('Abwesenheiten', 'beach_access', '/absences'),
-        ('Standup', 'record_voice_over', '/standup'),
-        ('Stunden', 'schedule', '/timelog'),
-        ('Burndown', 'trending_down', '/burndown'),
+    ('nav.grp.voyage', [
+        ('nav.board', 'view_kanban', '/board'),
+        ('nav.sprints', 'flag', '/sprints'),
+        ('nav.capacity', 'groups', '/capacity'),
+        ('nav.absences', 'beach_access', '/absences'),
+        ('nav.standup', 'record_voice_over', '/standup'),
+        ('nav.timelog', 'schedule', '/timelog'),
+        ('nav.burndown', 'trending_down', '/burndown'),
     ]),
-    ('Maschinenraum', [
-        ('Qualität & Bugs', 'bug_report', '/quality'),
-        ('Umgebungen', 'dns', '/environments'),
-        ('Incidents', 'report', '/incidents'),
-        ('Releases', 'rocket_launch', '/releases'),
+    ('nav.grp.engineroom', [
+        ('nav.quality', 'bug_report', '/quality'),
+        ('nav.environments', 'dns', '/environments'),
+        ('nav.incidents', 'report', '/incidents'),
+        ('nav.releases', 'rocket_launch', '/releases'),
     ]),
-    ('Brücke', [
-        ('Stakeholder', 'diversity_3', '/stakeholders'),
-        ('Besprechungen', 'event', '/meetings'),
-        ('Änderungen', 'published_with_changes', '/changes'),
-        ('Risiken & Entscheidungen', 'policy', '/raid'),
-        ('Dokumente', 'folder_open', '/documents'),
-        ('Lieferanten & Lizenzen', 'shopping_cart', '/vendors'),
+    ('nav.grp.bridge', [
+        ('nav.stakeholders', 'diversity_3', '/stakeholders'),
+        ('nav.meetings', 'event', '/meetings'),
+        ('nav.changes', 'published_with_changes', '/changes'),
+        ('nav.raid', 'policy', '/raid'),
+        ('nav.documents', 'folder_open', '/documents'),
+        ('nav.vendors', 'shopping_cart', '/vendors'),
     ]),
-    ('Mannschaft', [
-        ('Wetterlage', 'wb_sunny', '/wetter'),
-        ('Retrospektive', 'reviews', '/retro'),
-        ('Lessons Learned', 'school', '/lessons'),
-        ('1:1-Gespräche', 'forum', '/one-on-ones'),
-        ('Speicher (Ideen)', 'lightbulb', '/ideas'),
+    ('nav.grp.crew', [
+        ('nav.wetter', 'wb_sunny', '/wetter'),
+        ('nav.retro', 'reviews', '/retro'),
+        ('nav.lessons', 'school', '/lessons'),
+        ('nav.oneonones', 'forum', '/one-on-ones'),
+        ('nav.ideas', 'lightbulb', '/ideas'),
     ]),
-    ('Werft', [
-        ('Projekte', 'inventory_2', '/projects'),
-        ('Crew', 'badge', '/team'),
-        ('Module', 'tune', '/modules'),
-        ('Einstellungen', 'settings', '/settings'),
+    ('nav.grp.shipyard', [
+        ('nav.projects', 'inventory_2', '/projects'),
+        ('nav.team', 'badge', '/team'),
+        ('nav.modules', 'tune', '/modules'),
+        ('nav.settings', 'settings', '/settings'),
     ]),
 ]
 
@@ -84,8 +89,8 @@ def frame(active_path: str):
         ui.button(icon='menu', on_click=drawer.toggle).props('flat round color=white')
         ui.icon('anchor').classes('text-2xl')
         with ui.column().classes('gap-0'):
-            ui.label('Kontor').classes('kontor-title text-xl leading-none')
-            ui.label('Projektleitstand').classes('text-[10px] uppercase tracking-widest opacity-70 leading-none')
+            ui.label(t('app.title')).classes('kontor-title text-xl leading-none')
+            ui.label(t('app.subtitle')).classes('text-[10px] uppercase tracking-widest opacity-70 leading-none')
 
         projects = store.active_projects
         if projects:
@@ -94,13 +99,14 @@ def frame(active_path: str):
                 .props('dense options-dense borderless dark').classes('ml-3 min-w-[13rem]')
         ui.space()
         sp = store.active_sprint
-        ui.badge(f'Kurs: {sp.name}' if sp else 'vor Anker').props('color=accent text-color=dark')
+        ui.badge(t('app.sprint_badge', name=sp.name) if sp else t('app.no_sprint_badge')) \
+            .props('color=accent text-color=dark')
         ui.button(icon='help_outline', on_click=lambda: _page_help_dialog(active_path)) \
-            .props('flat round color=white').tooltip('Was ist diese Seite? (Hilfe)')
+            .props('flat round color=white').tooltip(t('app.help_tooltip'))
         theme.toggle_button(dark)
         if auth.enabled():
             ui.button(icon='logout', on_click=auth.logout) \
-                .props('flat round color=white').tooltip('Abmelden')
+                .props('flat round color=white').tooltip(t('app.logout_tooltip'))
 
     with drawer:
         for group, items in NAV_GROUPS:
@@ -109,7 +115,7 @@ def frame(active_path: str):
             if not visible:
                 continue
             group_active = any(path == active_path for _, _, path in visible)
-            exp = ui.expansion(group, value=group_active or group.startswith('Lotse')).classes('w-full') \
+            exp = ui.expansion(t(group), value=group_active or group == 'nav.grp.pilot').classes('w-full') \
                 .props('dense header-class="kontor-title text-xs uppercase text-grey-7 tracking-widest px-1"')
             with exp:
                 for label, icon, path in visible:
@@ -121,20 +127,19 @@ def frame(active_path: str):
                     row.on('click', lambda p=path: ui.navigate.to(p))
                     with row:
                         ui.icon(icon).classes('text-lg')
-                        ui.label(label).classes('text-sm')
+                        ui.label(t(label)).classes('text-sm')
                         if off:
                             ui.icon('visibility_off', size='14px').classes('text-grey-5')
 
     with ui.column().classes('w-full max-w-6xl mx-auto p-4 gap-3'):
         if not store.project:
-            ui.label('Noch kein Projekt – lege in der Werft eines an.').classes('text-grey-6')
+            ui.label(t('app.no_project')).classes('text-grey-6')
         elif not store.module_enabled(active_path):
             with ui.card().classes('w-full bg-amber-1 border border-amber-3 gap-1'):
                 with ui.row().classes('items-center gap-2'):
                     ui.icon('visibility_off').classes('text-amber-9')
-                    ui.label('Dieser Bereich ist für das aktuelle Projekt ausgeblendet.') \
-                        .classes('text-sm')
-                    ui.button('Module verwalten', icon='tune',
+                    ui.label(t('app.module_hidden')).classes('text-sm')
+                    ui.button(t('app.manage_modules'), icon='tune',
                               on_click=lambda: ui.navigate.to('/modules')) \
                         .props('flat dense no-caps size=sm')
         yield
@@ -155,27 +160,27 @@ def _page_help_dialog(path: str) -> None:
     h = guide.PAGES.get(path)
     with ui.dialog() as d, ui.card().classes('w-[34rem] max-w-full gap-2'):
         if not h:
-            ui.label('Für diese Seite gibt es noch keine Kurzhilfe.').classes('text-sm')
-            ui.button('Alles klar', on_click=d.close).props('flat')
+            ui.label(t('pagehelp.missing')).classes('text-sm')
+            ui.button(t('pagehelp.ok'), on_click=d.close).props('flat')
         else:
             with ui.row().classes('items-center gap-2 no-wrap'):
                 ui.icon('info').classes('text-primary text-xl')
                 ui.label(h['title']).classes('kontor-title text-lg')
             ui.label(h['what']).classes('text-sm text-grey-8')
             if h.get('steps'):
-                ui.label('So gehst du vor').classes('text-xs font-bold uppercase text-grey-6 mt-1')
+                ui.label(t('pagehelp.steps_title')).classes('text-xs font-bold uppercase text-grey-6 mt-1')
                 for i, s in enumerate(h['steps'], 1):
                     ui.label(f'{i}. {s}').classes('text-sm')
             if h.get('tips'):
-                ui.label('Tipps').classes('text-xs font-bold uppercase text-grey-6 mt-1')
-                for t in h['tips']:
+                ui.label(t('pagehelp.tips_title')).classes('text-xs font-bold uppercase text-grey-6 mt-1')
+                for tip in h['tips']:
                     with ui.row().classes('items-start gap-1 no-wrap'):
                         ui.icon('lightbulb', size='16px').classes('text-accent mt-0.5')
-                        ui.label(t).classes('text-sm')
+                        ui.label(tip).classes('text-sm')
             with ui.row().classes('w-full justify-end gap-2'):
-                ui.button('Zur Anleitung', icon='menu_book',
+                ui.button(t('pagehelp.to_handbook'), icon='menu_book',
                           on_click=lambda: (d.close(), ui.navigate.to('/handbook'))).props('flat no-caps')
-                ui.button('Verstanden', on_click=d.close).props('unelevated no-caps')
+                ui.button(t('pagehelp.understood'), on_click=d.close).props('unelevated no-caps')
     d.open()
 
 
@@ -201,23 +206,22 @@ def _maybe_welcome() -> None:
     with ui.dialog().props('persistent') as dlg, ui.card().classes('w-[32rem] max-w-full gap-3'):
         with ui.row().classes('items-center gap-2 no-wrap'):
             ui.icon('sailing').classes('text-primary text-2xl')
-            ui.label('Moin! Neu hier?').classes('kontor-title text-lg')
-        ui.label('Dieses Werkzeug hilft dir, den Überblick als Teamleitung zu behalten. '
-                 'Zwei Seiten machen den Anfang leicht:').classes('text-sm text-grey-8')
+            ui.label(t('welcome.title')).classes('kontor-title text-lg')
+        ui.label(t('welcome.body')).classes('text-sm text-grey-8')
         with ui.column().classes('gap-1 text-sm'):
-            ui.label('• Fahrplan heute – sagt dir jeden Tag, was ansteht.')
-            ui.label('• Anleitung – erklärt jeden Bereich der App.')
-            ui.label('• Der (i)-Knopf oben rechts erklärt immer die aktuelle Seite.')
+            ui.label(t('welcome.bullet_today'))
+            ui.label(t('welcome.bullet_handbook'))
+            ui.label(t('welcome.bullet_help'))
         with ui.row().classes('w-full justify-end gap-2'):
-            ui.button('Später', on_click=lambda: _dismiss()).props('flat no-caps')
-            ui.button('Anleitung öffnen', icon='menu_book',
+            ui.button(t('welcome.later'), on_click=lambda: _dismiss()).props('flat no-caps')
+            ui.button(t('welcome.open_handbook'), icon='menu_book',
                       on_click=lambda: _dismiss('/handbook')).props('flat no-caps')
-            ui.button('Zum Fahrplan', icon='explore',
+            ui.button(t('welcome.open_today'), icon='explore',
                       on_click=lambda: _dismiss('/today')).props('unelevated no-caps')
     dlg.open()
 
 
-def help_hint(text: str, *, title: str = 'Hinweis') -> None:
+def help_hint(text: str, *, title: str | None = None) -> None:
     """Kleine, aufklappbare Infobox für den Seiteninhalt."""
     with ui.expansion(title, icon='info').props('dense').classes(
             'w-full bg-blue-1 rounded-lg text-sm border border-blue-2'):

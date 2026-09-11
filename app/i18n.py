@@ -1,0 +1,500 @@
+"""Kleiner, abhaengigkeitsfreier Uebersetzungs-Katalog fuer die Oberflaeche.
+
+Kein gettext/babel noetig – passt zum minimalen Abhaengigkeitsstil des
+Projekts (siehe requirements.txt). Jede Sprache ist ein flaches
+``dict[str, str]``, die Schluessel sind kurze, sprechende Pfade
+(z. B. ``'nav.today'``, ``'settings.title'``).
+
+``de`` ist absichtlich Wort-fuer-Wort identisch mit den bisherigen
+Literalen im Code – damit ist Deutsch ein verlustfreier Fallback, falls ein
+Schluessel in ``en`` (noch) fehlt oder eine Seite noch nicht uebersetzt ist.
+
+Wichtig: Dieser Katalog uebersetzt nur *angezeigte* Texte. Intern
+gespeicherte Werte (z. B. ``task.priority == 'kritisch'``,
+``store.PRIORITIES``, ``STATUS_LABELS``-Schluessel …) bleiben unveraendert
+deutsch – siehe store.py.
+"""
+from __future__ import annotations
+
+LANGS: dict[str, dict[str, str]] = {
+    'de': {
+        # -- Navigation: Gruppen -------------------------------------
+        'nav.grp.pilot': 'Lotse (Start hier)',
+        'nav.grp.lookout': 'Ausguck',
+        'nav.grp.course': 'Kurs setzen',
+        'nav.grp.voyage': 'Törn',
+        'nav.grp.engineroom': 'Maschinenraum',
+        'nav.grp.bridge': 'Brücke',
+        'nav.grp.crew': 'Mannschaft',
+        'nav.grp.shipyard': 'Werft',
+
+        # -- Navigation: Eintraege ------------------------------------
+        'nav.today': 'Fahrplan heute',
+        'nav.roles': 'Rollen & Ablauf',
+        'nav.handbook': 'Anleitung',
+        'nav.dashboard': 'Leitstand',
+        'nav.portfolio': 'Flotte',
+        'nav.status': 'Statusbericht',
+        'nav.metrics': 'Metriken',
+        'nav.budget': 'Budget & Kosten',
+        'nav.calendar': 'Seekarte',
+        'nav.charter': 'Steckbrief',
+        'nav.requirements': 'Anforderungen',
+        'nav.roadmap': 'Roadmap',
+        'nav.milestones': 'Meilensteine',
+        'nav.okrs': 'OKRs / Ziele',
+        'nav.raci': 'RACI',
+        'nav.board': 'Board',
+        'nav.sprints': 'Sprint-Planung',
+        'nav.capacity': 'Kapazität',
+        'nav.absences': 'Abwesenheiten',
+        'nav.standup': 'Standup',
+        'nav.timelog': 'Stunden',
+        'nav.burndown': 'Burndown',
+        'nav.quality': 'Qualität & Bugs',
+        'nav.environments': 'Umgebungen',
+        'nav.incidents': 'Incidents',
+        'nav.releases': 'Releases',
+        'nav.stakeholders': 'Stakeholder',
+        'nav.meetings': 'Besprechungen',
+        'nav.changes': 'Änderungen',
+        'nav.raid': 'Risiken & Entscheidungen',
+        'nav.documents': 'Dokumente',
+        'nav.vendors': 'Lieferanten & Lizenzen',
+        'nav.wetter': 'Wetterlage',
+        'nav.retro': 'Retrospektive',
+        'nav.lessons': 'Lessons Learned',
+        'nav.oneonones': '1:1-Gespräche',
+        'nav.ideas': 'Speicher (Ideen)',
+        'nav.projects': 'Projekte',
+        'nav.team': 'Crew',
+        'nav.modules': 'Module',
+        'nav.settings': 'Einstellungen',
+
+        # -- Header / App-Rahmen ---------------------------------------
+        'app.title': 'Kontor',
+        'app.subtitle': 'Projektleitstand',
+        'app.no_project': 'Noch kein Projekt – lege in der Werft eines an.',
+        'app.module_hidden': 'Dieser Bereich ist für das aktuelle Projekt ausgeblendet.',
+        'app.manage_modules': 'Module verwalten',
+        'app.sprint_badge': 'Kurs: {name}',
+        'app.no_sprint_badge': 'vor Anker',
+        'app.help_tooltip': 'Was ist diese Seite? (Hilfe)',
+        'app.logout_tooltip': 'Abmelden',
+        'app.lock_tooltip': 'Kernbereich – immer sichtbar',
+
+        # -- Seiten-Hilfe-Dialog (Scaffold, nicht die Inhalte aus guide.py) --
+        'pagehelp.missing': 'Für diese Seite gibt es noch keine Kurzhilfe.',
+        'pagehelp.ok': 'Alles klar',
+        'pagehelp.steps_title': 'So gehst du vor',
+        'pagehelp.tips_title': 'Tipps',
+        'pagehelp.to_handbook': 'Zur Anleitung',
+        'pagehelp.understood': 'Verstanden',
+
+        # -- Willkommens-Dialog -----------------------------------------
+        'welcome.title': 'Moin! Neu hier?',
+        'welcome.body': ('Dieses Werkzeug hilft dir, den Überblick als Teamleitung zu behalten. '
+                          'Zwei Seiten machen den Anfang leicht:'),
+        'welcome.bullet_today': '• Fahrplan heute – sagt dir jeden Tag, was ansteht.',
+        'welcome.bullet_handbook': '• Anleitung – erklärt jeden Bereich der App.',
+        'welcome.bullet_help': '• Der (i)-Knopf oben rechts erklärt immer die aktuelle Seite.',
+        'welcome.later': 'Später',
+        'welcome.open_handbook': 'Anleitung öffnen',
+        'welcome.open_today': 'Zum Fahrplan',
+
+        # -- help_hint Komponente ----------------------------------------
+        'component.hint_title': 'Hinweis',
+
+        # -- gemeinsame Wörter / Buttons ----------------------------------
+        'common.save': 'Speichern',
+        'common.cancel': 'Abbrechen',
+        'common.delete': 'Löschen',
+        'common.saved': 'Gespeichert',
+        'common.name_missing': 'Name fehlt',
+        'common.title_missing': 'Titel fehlt',
+        'common.active': 'aktiv',
+        'common.archived': 'archiviert',
+        'common.open': 'Öffnen',
+
+        # -- Login-Seite ---------------------------------------------
+        'auth.app_title': 'Kontor · Projektleitstand',
+        'auth.username': 'Benutzer',
+        'auth.password': 'Passwort',
+        'auth.login': 'Anmelden',
+        'auth.invalid': 'Falsche Zugangsdaten',
+
+        # -- Einstellungen ---------------------------------------------
+        'settings.page_title': 'Einstellungen',
+        'settings.hint_title': 'Was hier passiert',
+        'settings.hint_body': ('Diese Optionen gelten fuer den ganzen Leitstand und werden in pm.json '
+                                'gespeichert. Aenderungen wirken sofort. Der Willkommens-Dialog-Schalter '
+                                'unter „Einstieg & Hilfe" bezieht sich auf deinen Browser.'),
+        'settings.language.title': 'Sprache',
+        'settings.language.hint': 'Wirkt fuer alle, die diesen Leitstand nutzen. Die Seite laedt nach der Auswahl neu.',
+        'settings.language.label': 'Sprache der Oberfläche',
+        'settings.github.title': 'GitHub-Anbindung',
+        'settings.github.hint': ('Fuer die Pull-Request-Sicht auf dem Leitstand. Leer lassen, um die '
+                                  'Umgebungsvariablen GITHUB_REPO / GITHUB_TOKEN zu verwenden.'),
+        'settings.github.repo_label': 'Standard-Repository (owner/name)',
+        'settings.github.token_label': 'Personal Access Token',
+        'settings.github.token_hint': ('Der Token wird im Klartext in pm.json abgelegt – auf einem geteilten '
+                                        'Server besser die Umgebungsvariable nutzen.'),
+        'settings.defaults.title': 'Vorgaben',
+        'settings.defaults.currency': 'Waehrungssymbol',
+        'settings.defaults.weekly_hours': 'Wochenstunden (neue Crew)',
+        'settings.defaults.sprint_days': 'Sprint-Laenge (Tage)',
+        'settings.onboarding.title': 'Einstieg & Hilfe',
+        'settings.onboarding.show_welcome': 'Willkommens-Dialog fuer neue Browser zeigen',
+        'settings.onboarding.show_again': 'Willkommens-Dialog hier erneut anzeigen',
+        'settings.onboarding.show_again_notice': 'Beim naechsten Seitenaufruf erscheint der Dialog wieder.',
+        'settings.onboarding.no_storage': 'Kein Browser-Speicher verfuegbar.',
+        'settings.data.title': 'Daten',
+        'settings.data.location': 'Ablage: {path}',
+        'settings.data.export': 'Export (JSON herunterladen)',
+        'settings.data.import_hint': 'Import – ersetzt den gesamten Datenbestand durch die hochgeladene Datei.',
+        'settings.data.import_label': 'Kontor-Export waehlen',
+        'settings.data.import_failed': 'Import fehlgeschlagen: {error}',
+        'settings.data.import_ok': 'Import erfolgreich – Seite wird neu geladen.',
+        'settings.data.reseed': 'Demo-Daten neu laden',
+        'settings.data.clear_all': 'Alles leeren',
+        'settings.confirm.reseed_title': 'Demo-Daten neu laden?',
+        'settings.confirm.clear_title': 'Wirklich alle Daten loeschen?',
+        'settings.confirm.body': 'Der aktuelle Bestand geht dabei verloren (vorher ggf. exportieren).',
+        'settings.confirm.proceed': 'Fortfahren',
+        'settings.info.title': 'Ueber diese Installation',
+        'settings.info.version': 'Version {version}',
+        'settings.info.schema': 'Datenschema {schema}',
+        'settings.info.projects': '{n} Projekte',
+        'settings.info.records': '{n} Datensaetze gesamt',
+        'settings.info.biggest': 'Groesste Sammlungen: {list}',
+        'settings.deviating': 'Von der Voreinstellung abweichend: {list}',
+        'settings.reset_defaults': 'Auf Standard zuruecksetzen',
+        'settings.reset_done': 'Einstellungen zurueckgesetzt',
+
+        # -- Projekte (Werft) --------------------------------------------
+        'projects.page_title': 'Werft – Projekte',
+        'projects.list_title': 'Projekte',
+        'projects.new': 'Neues Projekt',
+        'projects.edit_title': 'Projekt bearbeiten',
+        'projects.new_title': 'Neues Projekt',
+        'projects.name': 'Name',
+        'projects.key': 'Kuerzel',
+        'projects.description': 'Beschreibung',
+        'projects.color': 'Farbe',
+        'projects.dod': 'Definition of Done (eine Zeile pro Kriterium)',
+        'projects.archived_checkbox': 'archiviert',
+        'projects.charter_button': 'Steckbrief',
+        'projects.sprints_tasks': '{sprints} Sprints · {tasks} Tasks',
+        'projects.delete_confirm': 'Projekt „{name}" mit allen Sprints, Tasks, Risiken … loeschen?',
+
+        # -- Fahrplan heute (Headings) -----------------------------------
+        'today.page_title': 'Fahrplan heute',
+        'today.hint_title': 'Wie der Fahrplan funktioniert',
+        'today.hint_body': ('Diese Liste ist ein Vorschlag, kein Gesetz. Hak ab, was erledigt ist – '
+                             'morgen sind die Häkchen wieder weg. Die Punkte unter „Jetzt wichtig" '
+                             'kommen automatisch aus euren Daten.'),
+        'today.date_heading': '{weekday}, {date}',
+        'today.no_active_sprint': 'kein aktiver Sprint',
+        'today.important_title': 'Jetzt wichtig',
+        'today.important_all_clear': 'Jetzt wichtig – alles im grünen Bereich',
+        'today.important_none': 'Keine dringenden Punkte. Trotzdem lohnt sich der Blick auf die Routine unten.',
+        'today.week_title': 'Diese Woche (nicht jeden Tag nötig)',
+        'today.footer_tip': ('Tipp: Wenn dir ein Punkt dauerhaft unklar ist, öffne oben rechts den '
+                              '(i)-Knopf oder schau in die Anleitung.'),
+        'today.weekday.0': 'Montag',
+        'today.weekday.1': 'Dienstag',
+        'today.weekday.2': 'Mittwoch',
+        'today.weekday.3': 'Donnerstag',
+        'today.weekday.4': 'Freitag',
+        'today.weekday.5': 'Samstag',
+        'today.weekday.6': 'Sonntag',
+
+        # -- Leitstand (Dashboard) ----------------------------------------
+        'dashboard.page_title': 'Leitstand',
+        'dashboard.greeting': 'Moin! {date}',
+        'dashboard.rag_tooltip': 'Projekt-Ampel (Statusbericht)',
+        'dashboard.no_active_sprint': 'Kein aktiver Sprint – in der Sprint-Planung einen aktivieren.',
+        'dashboard.days_left': '{n} Tage übrig',
+        'dashboard.sprint_ended': 'Sprint-Ende erreicht',
+        'dashboard.stat.story_hours': 'Story-Stunden',
+        'dashboard.stat.story_hours_hint': '{pct:.0f}% fertig',
+        'dashboard.stat.tasks_done': 'Tasks fertig',
+        'dashboard.stat.actual_effort': 'Ist-Aufwand',
+        'dashboard.stat.capacity': 'Kapazitaet',
+        'dashboard.bar.commitment_vs_capacity': 'Commitment vs. Kapazitaet',
+        'dashboard.bar.actual_vs_commitment': 'Ist-Aufwand vs. Commitment',
+        'dashboard.blocked_title': 'Blockiert ({n})',
+        'dashboard.blocked_none': 'nichts blockiert 🎉',
+        'dashboard.review_title': 'Wartet auf Review ({n})',
+        'dashboard.review_none': 'Review-Spalte leer',
+        'dashboard.ops_quality_title': 'Betrieb & Qualität',
+        'dashboard.no_open_incidents': 'keine offenen Incidents',
+        'dashboard.bugs_summary': '{open} offene Bugs · {critical} kritisch/hoch · {escaped} in Prod',
+        'dashboard.standup_blockers_title': 'Standup-Blocker heute ({n})',
+        'dashboard.standup_blockers_none': 'keine gemeldet',
+        'dashboard.top_risks_title': 'Top-Risiken',
+        'dashboard.no_open_risks': 'keine offenen Risiken',
+        'dashboard.open_actions_title': 'Offene Action-Items ({n})',
+        'dashboard.overdue': 'überfällig',
+        'dashboard.in_days': 'in {n} T',
+        'dashboard.next_release': 'Nächster Release: {version} ({date})',
+        'dashboard.gh_title': 'GitHub – offene Pull Requests',
+        'dashboard.gh_not_loaded': 'Noch nicht geladen – Repo eingeben und Enter druecken.',
+        'dashboard.gh_error': 'Fehler: {error}',
+        'dashboard.gh_token_hint': 'Tipp: GITHUB_TOKEN setzen fuer hoeheres Rate-Limit / private Repos.',
+        'dashboard.gh_open_prs': 'offene PRs',
+        'dashboard.gh_conflicts': 'Merge-Konflikte',
+        'dashboard.gh_ready': 'merge-bereit',
+        'dashboard.gh_draft_badge': 'Entwurf',
+        'dashboard.gh_conflict_tooltip': 'Merge-Konflikt',
+        'dashboard.gh_footer': '{repo} · Stand {time} · API {remaining}/{limit}',
+    },
+    'en': {
+        # -- Navigation: groups -------------------------------------
+        'nav.grp.pilot': 'Pilot (start here)',
+        'nav.grp.lookout': 'Lookout',
+        'nav.grp.course': 'Set course',
+        'nav.grp.voyage': 'Voyage',
+        'nav.grp.engineroom': 'Engine room',
+        'nav.grp.bridge': 'Bridge',
+        'nav.grp.crew': 'Crew',
+        'nav.grp.shipyard': 'Shipyard',
+
+        # -- Navigation: items ------------------------------------
+        'nav.today': 'Today',
+        'nav.roles': 'Roles & Workflow',
+        'nav.handbook': 'Handbook',
+        'nav.dashboard': 'Dashboard',
+        'nav.portfolio': 'Fleet',
+        'nav.status': 'Status Report',
+        'nav.metrics': 'Metrics',
+        'nav.budget': 'Budget & Costs',
+        'nav.calendar': 'Calendar',
+        'nav.charter': 'Charter',
+        'nav.requirements': 'Requirements',
+        'nav.roadmap': 'Roadmap',
+        'nav.milestones': 'Milestones',
+        'nav.okrs': 'OKRs / Goals',
+        'nav.raci': 'RACI',
+        'nav.board': 'Board',
+        'nav.sprints': 'Sprint Planning',
+        'nav.capacity': 'Capacity',
+        'nav.absences': 'Absences',
+        'nav.standup': 'Standup',
+        'nav.timelog': 'Timelog',
+        'nav.burndown': 'Burndown',
+        'nav.quality': 'Quality & Bugs',
+        'nav.environments': 'Environments',
+        'nav.incidents': 'Incidents',
+        'nav.releases': 'Releases',
+        'nav.stakeholders': 'Stakeholders',
+        'nav.meetings': 'Meetings',
+        'nav.changes': 'Changes',
+        'nav.raid': 'Risks & Decisions',
+        'nav.documents': 'Documents',
+        'nav.vendors': 'Vendors & Licenses',
+        'nav.wetter': 'Team Weather',
+        'nav.retro': 'Retrospective',
+        'nav.lessons': 'Lessons Learned',
+        'nav.oneonones': '1:1s',
+        'nav.ideas': 'Idea Locker',
+        'nav.projects': 'Projects',
+        'nav.team': 'Crew',
+        'nav.modules': 'Modules',
+        'nav.settings': 'Settings',
+
+        # -- Header / App chrome ---------------------------------------
+        'app.title': 'Kontor',
+        'app.subtitle': 'Project Control Room',
+        'app.no_project': 'No project yet – create one in the Shipyard.',
+        'app.module_hidden': 'This area is hidden for the current project.',
+        'app.manage_modules': 'Manage modules',
+        'app.sprint_badge': 'Course: {name}',
+        'app.no_sprint_badge': 'at anchor',
+        'app.help_tooltip': 'What is this page? (Help)',
+        'app.logout_tooltip': 'Log out',
+        'app.lock_tooltip': 'Core area – always visible',
+
+        # -- Page-help dialog (scaffold only, not guide.py content) --
+        'pagehelp.missing': 'There is no quick help for this page yet.',
+        'pagehelp.ok': 'Got it',
+        'pagehelp.steps_title': 'How to proceed',
+        'pagehelp.tips_title': 'Tips',
+        'pagehelp.to_handbook': 'Open handbook',
+        'pagehelp.understood': 'Understood',
+
+        # -- Welcome dialog -----------------------------------------
+        'welcome.title': 'Ahoy! New here?',
+        'welcome.body': ('This tool helps you keep an overview as a team lead. '
+                          'Two pages make it easy to get started:'),
+        'welcome.bullet_today': '• Today – tells you every day what is coming up.',
+        'welcome.bullet_handbook': '• Handbook – explains every area of the app.',
+        'welcome.bullet_help': '• The (i) button top right always explains the current page.',
+        'welcome.later': 'Later',
+        'welcome.open_handbook': 'Open handbook',
+        'welcome.open_today': 'Go to Today',
+
+        # -- help_hint component ----------------------------------------
+        'component.hint_title': 'Note',
+
+        # -- shared words / buttons ----------------------------------
+        'common.save': 'Save',
+        'common.cancel': 'Cancel',
+        'common.delete': 'Delete',
+        'common.saved': 'Saved',
+        'common.name_missing': 'Name missing',
+        'common.title_missing': 'Title missing',
+        'common.active': 'active',
+        'common.archived': 'archived',
+        'common.open': 'Open',
+
+        # -- Login page ---------------------------------------------
+        'auth.app_title': 'Kontor · Project Control Room',
+        'auth.username': 'Username',
+        'auth.password': 'Password',
+        'auth.login': 'Log in',
+        'auth.invalid': 'Invalid credentials',
+
+        # -- Settings ---------------------------------------------
+        'settings.page_title': 'Settings',
+        'settings.hint_title': 'What happens here',
+        'settings.hint_body': ('These options apply to the whole control room and are stored in '
+                                'pm.json. Changes take effect immediately. The welcome-dialog switch '
+                                'under "Onboarding & Help" applies to your browser only.'),
+        'settings.language.title': 'Language',
+        'settings.language.hint': 'Applies to everyone using this control room. The page reloads after you choose.',
+        'settings.language.label': 'Interface language',
+        'settings.github.title': 'GitHub Connection',
+        'settings.github.hint': ('For the pull-request view on the dashboard. Leave blank to use the '
+                                  'GITHUB_REPO / GITHUB_TOKEN environment variables instead.'),
+        'settings.github.repo_label': 'Default repository (owner/name)',
+        'settings.github.token_label': 'Personal access token',
+        'settings.github.token_hint': ('The token is stored in plain text in pm.json – on a shared '
+                                        'server, prefer the environment variable instead.'),
+        'settings.defaults.title': 'Defaults',
+        'settings.defaults.currency': 'Currency symbol',
+        'settings.defaults.weekly_hours': 'Weekly hours (new crew members)',
+        'settings.defaults.sprint_days': 'Sprint length (days)',
+        'settings.onboarding.title': 'Onboarding & Help',
+        'settings.onboarding.show_welcome': 'Show welcome dialog for new browsers',
+        'settings.onboarding.show_again': 'Show welcome dialog again here',
+        'settings.onboarding.show_again_notice': 'The dialog will appear again on the next page load.',
+        'settings.onboarding.no_storage': 'No browser storage available.',
+        'settings.data.title': 'Data',
+        'settings.data.location': 'Location: {path}',
+        'settings.data.export': 'Export (download JSON)',
+        'settings.data.import_hint': 'Import – replaces the entire dataset with the uploaded file.',
+        'settings.data.import_label': 'Choose Kontor export',
+        'settings.data.import_failed': 'Import failed: {error}',
+        'settings.data.import_ok': 'Import successful – reloading page.',
+        'settings.data.reseed': 'Reload demo data',
+        'settings.data.clear_all': 'Clear everything',
+        'settings.confirm.reseed_title': 'Reload demo data?',
+        'settings.confirm.clear_title': 'Really delete all data?',
+        'settings.confirm.body': 'The current data will be lost (export it first if needed).',
+        'settings.confirm.proceed': 'Proceed',
+        'settings.info.title': 'About this installation',
+        'settings.info.version': 'Version {version}',
+        'settings.info.schema': 'Data schema {schema}',
+        'settings.info.projects': '{n} projects',
+        'settings.info.records': '{n} records total',
+        'settings.info.biggest': 'Largest collections: {list}',
+        'settings.deviating': 'Different from default: {list}',
+        'settings.reset_defaults': 'Reset to defaults',
+        'settings.reset_done': 'Settings reset',
+
+        # -- Projects (Shipyard) --------------------------------------------
+        'projects.page_title': 'Shipyard – Projects',
+        'projects.list_title': 'Projects',
+        'projects.new': 'New project',
+        'projects.edit_title': 'Edit project',
+        'projects.new_title': 'New project',
+        'projects.name': 'Name',
+        'projects.key': 'Key',
+        'projects.description': 'Description',
+        'projects.color': 'Color',
+        'projects.dod': 'Definition of Done (one line per criterion)',
+        'projects.archived_checkbox': 'archived',
+        'projects.charter_button': 'Charter',
+        'projects.sprints_tasks': '{sprints} sprints · {tasks} tasks',
+        'projects.delete_confirm': 'Delete project "{name}" with all its sprints, tasks, risks, …?',
+
+        # -- Today (headings) -----------------------------------
+        'today.page_title': 'Today',
+        'today.hint_title': 'How this page works',
+        'today.hint_body': ('This list is a suggestion, not a rule. Check off what is done – '
+                             'the checkmarks reset again tomorrow. The items under "Important now" '
+                             'are derived automatically from your data.'),
+        'today.date_heading': '{weekday}, {date}',
+        'today.no_active_sprint': 'no active sprint',
+        'today.important_title': 'Important now',
+        'today.important_all_clear': 'Important now – all clear',
+        'today.important_none': 'Nothing urgent right now. Still worth a look at the routine below.',
+        'today.week_title': 'This week (not needed every day)',
+        'today.footer_tip': ('Tip: if a point stays unclear, open the (i) button top right '
+                              'or check the handbook.'),
+        'today.weekday.0': 'Monday',
+        'today.weekday.1': 'Tuesday',
+        'today.weekday.2': 'Wednesday',
+        'today.weekday.3': 'Thursday',
+        'today.weekday.4': 'Friday',
+        'today.weekday.5': 'Saturday',
+        'today.weekday.6': 'Sunday',
+
+        # -- Dashboard ----------------------------------------
+        'dashboard.page_title': 'Dashboard',
+        'dashboard.greeting': 'Hi! {date}',
+        'dashboard.rag_tooltip': 'Project traffic light (status report)',
+        'dashboard.no_active_sprint': 'No active sprint – activate one in Sprint Planning.',
+        'dashboard.days_left': '{n} days left',
+        'dashboard.sprint_ended': 'Sprint end reached',
+        'dashboard.stat.story_hours': 'Story hours',
+        'dashboard.stat.story_hours_hint': '{pct:.0f}% done',
+        'dashboard.stat.tasks_done': 'Tasks done',
+        'dashboard.stat.actual_effort': 'Actual effort',
+        'dashboard.stat.capacity': 'Capacity',
+        'dashboard.bar.commitment_vs_capacity': 'Commitment vs. capacity',
+        'dashboard.bar.actual_vs_commitment': 'Actual effort vs. commitment',
+        'dashboard.blocked_title': 'Blocked ({n})',
+        'dashboard.blocked_none': 'nothing blocked 🎉',
+        'dashboard.review_title': 'Waiting for review ({n})',
+        'dashboard.review_none': 'Review column empty',
+        'dashboard.ops_quality_title': 'Operations & Quality',
+        'dashboard.no_open_incidents': 'no open incidents',
+        'dashboard.bugs_summary': '{open} open bugs · {critical} critical/high · {escaped} in prod',
+        'dashboard.standup_blockers_title': 'Standup blockers today ({n})',
+        'dashboard.standup_blockers_none': 'none reported',
+        'dashboard.top_risks_title': 'Top risks',
+        'dashboard.no_open_risks': 'no open risks',
+        'dashboard.open_actions_title': 'Open action items ({n})',
+        'dashboard.overdue': 'overdue',
+        'dashboard.in_days': 'in {n}d',
+        'dashboard.next_release': 'Next release: {version} ({date})',
+        'dashboard.gh_title': 'GitHub – open pull requests',
+        'dashboard.gh_not_loaded': 'Not loaded yet – enter a repo and press Enter.',
+        'dashboard.gh_error': 'Error: {error}',
+        'dashboard.gh_token_hint': 'Tip: set GITHUB_TOKEN for a higher rate limit / private repos.',
+        'dashboard.gh_open_prs': 'open PRs',
+        'dashboard.gh_conflicts': 'merge conflicts',
+        'dashboard.gh_ready': 'ready to merge',
+        'dashboard.gh_draft_badge': 'Draft',
+        'dashboard.gh_conflict_tooltip': 'Merge conflict',
+        'dashboard.gh_footer': '{repo} · as of {time} · API {remaining}/{limit}',
+    },
+}
+
+
+def t(key: str, **kwargs) -> str:
+    """Uebersetzten Text fuer ``key`` in der aktuell eingestellten Sprache liefern.
+
+    Faellt auf Deutsch zurueck, wenn der Schluessel in der aktuellen Sprache
+    fehlt, und auf den Schluessel selbst, wenn er auch dort fehlt. Mit
+    ``kwargs`` wird ``str.format(**kwargs)`` auf das Ergebnis angewendet.
+    """
+    from store import store  # lazy: vermeidet Zirkelbezug beim Modul-Import
+
+    lang = store.setting('language', 'de')
+    text = LANGS.get(lang, {}).get(key)
+    if text is None:
+        text = LANGS['de'].get(key, key)
+    return text.format(**kwargs) if kwargs else text

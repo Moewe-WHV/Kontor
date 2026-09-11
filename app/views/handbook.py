@@ -5,6 +5,7 @@ import guide
 from nicegui import ui
 
 from components import NAV_GROUPS, frame
+from i18n import t
 
 _flt = {'q': ''}
 
@@ -43,7 +44,7 @@ def results() -> None:
         rows = []
         for label, icon, path in items:
             h = guide.PAGES.get(path)
-            hay = f'{label} {group} {h["what"] if h else ""}'.lower()
+            hay = f'{t(label)} {t(group)} {h["what"] if h else ""}'.lower()
             if q and not _match(hay, q):
                 continue
             rows.append((label, icon, path, h))
@@ -51,9 +52,9 @@ def results() -> None:
             continue
         hits += len(rows)
         with ui.card().classes('w-full gap-1'):
-            ui.label(group).classes('text-xs font-bold uppercase tracking-widest text-grey-6')
+            ui.label(t(group)).classes('text-xs font-bold uppercase tracking-widest text-grey-6')
             for label, icon, path, h in rows:
-                with ui.expansion(label, icon=icon).props('dense').classes('w-full text-sm'):
+                with ui.expansion(t(label), icon=icon).props('dense').classes('w-full text-sm'):
                     if h:
                         ui.label(h['what']).classes('text-sm text-grey-8')
                         if h.get('steps'):
@@ -62,10 +63,10 @@ def results() -> None:
                             for i, s in enumerate(h['steps'], 1):
                                 ui.label(f'{i}. {s}').classes('text-sm')
                         if h.get('tips'):
-                            for t in h['tips']:
+                            for tip in h['tips']:
                                 with ui.row().classes('items-start gap-1 no-wrap mt-1'):
                                     ui.icon('lightbulb', size='15px').classes('text-accent mt-0.5')
-                                    ui.label(t).classes('text-sm text-grey-7')
+                                    ui.label(tip).classes('text-sm text-grey-7')
                     else:
                         ui.label('Noch keine Beschreibung.').classes('text-sm text-grey-5')
                     ui.button('Bereich öffnen', icon='open_in_new',
