@@ -29,6 +29,7 @@ DEFAULT_SETTINGS: dict = {
     'default_weekly_hours': 40.0,
     'default_sprint_days': 14,
     'show_welcome': True,         # Willkommens-Dialog fuer neue Browser zeigen
+    'language': 'de',             # UI-Sprache: 'de' oder 'en' (siehe i18n.py)
 }
 
 STATUSES = ['backlog', 'todo', 'doing', 'review', 'done']
