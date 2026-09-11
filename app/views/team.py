@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from nicegui import ui
 
+import auth
 from components import avatar, frame, viewer_is_leader
 from store import DATA_FILE, store
 
@@ -103,15 +104,16 @@ def content() -> None:
                 ui.label(f'{open_tasks} offene Tasks').classes('text-xs text-grey-6')
                 ui.button(icon='edit', on_click=lambda m=m: _member_form(m)).props('flat dense')
 
-    ui.separator()
-    with ui.card().classes('w-full gap-2'):
-        ui.label('Daten').classes('text-sm font-bold')
-        ui.label(f'Speicherort: {DATA_FILE}').classes('text-xs text-grey-6')
-        with ui.row().classes('gap-2'):
-            ui.button('Auf Demodaten zuruecksetzen', icon='restart_alt', color='warning',
-                      on_click=lambda: _confirm(True)).props('outline no-caps')
-            ui.button('Alles leeren', icon='delete_forever', color='negative',
-                      on_click=lambda: _confirm(False)).props('outline no-caps')
+    if auth.has_role('admin'):
+        ui.separator()
+        with ui.card().classes('w-full gap-2'):
+            ui.label('Daten').classes('text-sm font-bold')
+            ui.label(f'Speicherort: {DATA_FILE}').classes('text-xs text-grey-6')
+            with ui.row().classes('gap-2'):
+                ui.button('Auf Demodaten zuruecksetzen', icon='restart_alt', color='warning',
+                          on_click=lambda: _confirm(True)).props('outline no-caps')
+                ui.button('Alles leeren', icon='delete_forever', color='negative',
+                          on_click=lambda: _confirm(False)).props('outline no-caps')
 
 
 def _confirm(demo: bool) -> None:
@@ -119,9 +121,16 @@ def _confirm(demo: bool) -> None:
         ui.label('Demodaten wiederherstellen?' if demo else 'Wirklich alle Daten loeschen?')
         with ui.row():
             ui.button('Abbrechen', on_click=d.close).props('flat')
-            ui.button('OK', color='negative',
-                      on_click=lambda: (store.reset(demo=demo), d.close(),
-                                        ui.navigate.reload()))
+
+            def _do() -> None:
+                if not auth.require_role('admin'):
+                    d.close()
+                    return
+                store.reset(demo=demo)
+                d.close()
+                ui.navigate.reload()
+
+            ui.button('OK', color='negative', on_click=_do)
     d.open()
 
 

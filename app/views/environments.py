@@ -39,6 +39,7 @@ def _env_form(existing=None) -> None:
                 store.add('environments', Environment, project_id=store.pid, **data)
             else:
                 store.update(existing, **data)
+            ui.notify('Gespeichert', type='positive')
             d.close()
             content.refresh()
 
@@ -78,6 +79,7 @@ def _deploy_form(env=None) -> None:
             e = next((x for x in store.p_environments() if x.name == target.value), None)
             if e and status.value == 'erfolgreich':
                 store.update(e, version=version.value.strip(), last_deploy=dt.value)
+            ui.notify('Gespeichert', type='positive')
             d.close()
             content.refresh()
 

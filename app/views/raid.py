@@ -46,6 +46,7 @@ def _risk_form(existing=None) -> None:
                 store.add('risks', Risk, project_id=store.pid, **data)
             else:
                 store.update(existing, **data)
+            ui.notify('Gespeichert', type='positive')
             d.close()
             content.refresh()
 
@@ -89,6 +90,7 @@ def _decision_form(existing=None) -> None:
                 store.add('decisions', Decision, project_id=store.pid, **data)
             else:
                 store.update(existing, **data)
+            ui.notify('Gespeichert', type='positive')
             d.close()
             content.refresh()
 

@@ -13,6 +13,8 @@ from nicegui import ui
 from components import frame
 from store import ROLES, store
 
+MIN_PASSWORD_LENGTH = 8
+
 
 def _user_form(existing=None) -> None:
     is_new = existing is None
@@ -42,6 +44,9 @@ def _user_form(existing=None) -> None:
             if is_new and not password.value:
                 ui.notify('Passwort fehlt', type='warning')
                 return
+            if password.value and len(password.value) < MIN_PASSWORD_LENGTH:
+                ui.notify(f'Passwort muss mindestens {MIN_PASSWORD_LENGTH} Zeichen haben', type='warning')
+                return
             if is_new:
                 store.add_user(username=uname, display_name=name.value.strip(),
                                 password=password.value, role=role.value, active=active.value)
@@ -52,6 +57,7 @@ def _user_form(existing=None) -> None:
                 if password.value:
                     store.set_user_password(existing, password.value)
                 store.save()
+            ui.notify('Gespeichert', type='positive')
             d.close()
             content.refresh()
 

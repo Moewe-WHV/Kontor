@@ -9,6 +9,7 @@ import json
 
 from nicegui import app, ui
 
+import auth
 from components import frame, help_hint
 from i18n import t
 from store import DATA_FILE, DEFAULT_SETTINGS, SCHEMA, VERSION, _MODELS, store
@@ -92,10 +93,17 @@ def _section_data() -> None:
                       on_click=lambda: ui.download.file(DATA_FILE, 'kontor-export.json')) \
                 .props('outline no-caps')
 
+        if not auth.has_role('admin'):
+            ui.separator()
+            ui.label(t('settings.data.admin_only')).classes('text-xs text-grey-6')
+            return
+
         ui.separator()
         ui.label(t('settings.data.import_hint')).classes('text-xs text-grey-7')
 
         def _on_upload(e) -> None:
+            if not auth.require_role('admin'):
+                return
             try:
                 raw = json.loads(e.content.read().decode('utf-8'))
                 store.import_payload(raw)
@@ -125,6 +133,9 @@ def _confirm_reset(*, demo: bool) -> None:
             ui.button(t('common.cancel'), on_click=d.close).props('flat')
 
             def _do() -> None:
+                if not auth.require_role('admin'):
+                    d.close()
+                    return
                 store.reset(demo=demo)
                 d.close()
                 ui.navigate.to('/')

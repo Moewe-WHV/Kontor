@@ -33,6 +33,7 @@ def _form(member_id: str, existing=None) -> None:
                 store.add('one_on_ones', OneOnOne, member_id=member_id, **data)
             else:
                 store.update(existing, **data)
+            ui.notify('Gespeichert', type='positive')
             d.close()
             content.refresh()
 

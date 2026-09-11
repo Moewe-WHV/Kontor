@@ -48,6 +48,7 @@ def _form(existing=None) -> None:
                 store.add('vendors', Vendor, project_id=store.pid, **data)
             else:
                 store.update(existing, **data)
+            ui.notify('Gespeichert', type='positive')
             d.close()
             content.refresh()
 

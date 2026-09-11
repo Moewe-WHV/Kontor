@@ -34,6 +34,9 @@ def _sprint_form(existing=None) -> None:
             if not name.value.strip():
                 ui.notify('Name fehlt', type='warning')
                 return
+            if s_start.value and s_end.value and s_end.value < s_start.value:
+                ui.notify('Ende darf nicht vor dem Start liegen', type='warning')
+                return
             if is_new:
                 store.add_sprint(project_id=store.pid, name=name.value.strip(), goal=goal.value or '',
                                  start=s_start.value, end=s_end.value)
@@ -41,6 +44,7 @@ def _sprint_form(existing=None) -> None:
                 existing.name, existing.goal = name.value.strip(), goal.value or ''
                 existing.start, existing.end = s_start.value, s_end.value
                 store.save()
+            ui.notify('Gespeichert', type='positive')
             d.close()
             content.refresh()
 

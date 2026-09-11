@@ -110,7 +110,10 @@ def viewer_is_leader(pid: str | None = None) -> bool:
 @contextmanager
 def frame(active_path: str):
     dark = theme.apply()
-    drawer = ui.left_drawer(value=True, bordered=True).classes('gap-0 px-2 pb-6')
+    # value=None laesst Quasar entscheiden: offen ab 1024px Breite, sonst als
+    # Overlay zu – sonst verdeckt das Menu auf dem Handy beim ersten Laden die
+    # komplette Seite (siehe QDrawer-Breakpoint-Verhalten).
+    drawer = ui.left_drawer(bordered=True).classes('gap-0 px-2 pb-6')
     with ui.header(elevated=True).classes('bg-primary items-center px-3 gap-2 text-white'):
         ui.button(icon='menu', on_click=drawer.toggle).props('flat round color=white')
         ui.icon('anchor').classes('text-2xl')

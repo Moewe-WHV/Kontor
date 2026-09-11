@@ -5,14 +5,14 @@ import asyncio
 import os
 from datetime import date
 
-from nicegui import ui
+from nicegui import app, ui
 
 from components import avatar, bar, chart_opts, frame, stat_tile
 from github_client import GitHubClient, human_age
 from store import RAG, store
 
 DEFAULT_REPO = os.getenv('GITHUB_REPO', 'zauberzeug/nicegui')
-_gh: dict = {'snap': None, 'loading': False, 'repo': DEFAULT_REPO}
+GH_PANEL_LIMIT = 8  # Dashboard-Kachel: nur die wichtigsten PRs, Rest via Link auf GitHub
 
 
 def _configured_repo() -> str:
@@ -23,16 +23,24 @@ def _configured_token() -> str | None:
     return (store.setting('github_token') or '').strip() or None
 
 
-async def _load_gh() -> None:
-    _gh['loading'] = True
+def _gh_state() -> dict:
+    # Pro Browser-Tab (app.storage.client), nicht modulweit – sonst sehen alle
+    # gleichzeitig verbundenen Nutzer denselben Repo/PR-Stand (siehe _load_gh/gh_panel).
+    return app.storage.client.setdefault('gh', {'snap': None, 'loading': False, 'repo': _configured_repo()})
+
+
+async def _load_gh(gh: dict) -> None:
+    # `gh` muss synchron (vor dem `create_task`) aufgeloest werden: app.storage.client
+    # braucht einen aktiven Slot-Kontext, den ein Hintergrund-Task nicht mehr hat.
+    gh['loading'] = True
     gh_panel.refresh()
     try:
-        _gh['snap'] = await GitHubClient(_gh['repo'], token=_configured_token()).fetch()
+        gh['snap'] = await GitHubClient(gh['repo'], token=_configured_token()).fetch()
     except Exception as exc:  # noqa: BLE001
-        _gh['snap'] = None
+        gh['snap'] = None
         ui.notify(f'GitHub-Fehler: {exc}', type='negative')
     finally:
-        _gh['loading'] = False
+        gh['loading'] = False
         gh_panel.refresh()
 
 
@@ -181,16 +189,17 @@ def lead_panel() -> None:
 
 @ui.refreshable
 def gh_panel() -> None:
+    gh = _gh_state()
     with ui.card().classes('w-full gap-2'):
         with ui.row().classes('w-full items-center gap-2'):
             ui.label('GitHub – offene Pull Requests').classes('text-sm font-bold')
-            repo_in = ui.input(value=_gh['repo']).props('dense outlined').classes('w-56')
+            repo_in = ui.input(value=gh['repo']).props('dense outlined').classes('w-56')
             repo_in.on('keydown.enter',
-                       lambda: (_gh.update(repo=repo_in.value.strip()), asyncio.create_task(_load_gh())))
-            ui.button(icon='refresh', on_click=lambda: asyncio.create_task(_load_gh())).props('flat dense')
-            if _gh['loading']:
+                       lambda: (gh.update(repo=repo_in.value.strip()), asyncio.create_task(_load_gh(gh))))
+            ui.button(icon='refresh', on_click=lambda: asyncio.create_task(_load_gh(gh))).props('flat dense')
+            if gh['loading']:
                 ui.spinner()
-        snap = _gh['snap']
+        snap = gh['snap']
         if snap is None:
             ui.label('Noch nicht geladen – Repo eingeben und Enter druecken.').classes('text-xs text-grey-5')
             return
@@ -206,7 +215,17 @@ def gh_panel() -> None:
             stat_tile(len(snap.pulls), 'offene PRs')
             stat_tile(len(conflicts), 'Merge-Konflikte', 'text-negative' if conflicts else 'text-grey-5')
             stat_tile(len(ready), 'merge-bereit', 'text-positive' if ready else 'text-grey-5')
-        for p in snap.pulls:
+        # Wichtigste zuerst (Konflikte/CI-Fehler/merge-bereit), sonst Reihenfolge der API;
+        # sonst wuerde ein grosses Repo die Kachel auf Tausende Pixel Hoehe aufblaehen.
+        def _rank(p) -> int:
+            if p.has_conflict or p.ci_state == 'failure':
+                return 0
+            if p.ready_to_merge:
+                return 1
+            return 2
+
+        shown = sorted(snap.pulls, key=_rank)[:GH_PANEL_LIMIT]
+        for p in shown:
             color = ('border-negative' if p.has_conflict else
                      'border-positive' if p.ready_to_merge else 'border-grey-4')
             with ui.row().classes(f'w-full items-center gap-2 no-wrap border-l-4 {color} pl-2 py-1'):
@@ -220,14 +239,19 @@ def gh_panel() -> None:
                 if ci:
                     ui.icon(ci[0], size='16px').classes(ci[1])
                 ui.label(f'{p.author} · {human_age(p.created_at)}').classes('text-xs text-grey-6')
+        rest = len(snap.pulls) - len(shown)
+        if rest > 0:
+            ui.link(f'+{rest} weitere auf GitHub ansehen',
+                    f'https://github.com/{snap.repo}/pulls', new_tab=True).classes('text-xs')
         if snap.rate:
             ui.label(f'{snap.repo} · Stand {snap.fetched_at:%H:%M} · API {snap.rate.remaining}/{snap.rate.limit}') \
                 .classes('text-xs text-grey-5')
 
 
 def page() -> None:
-    if _gh['snap'] is None and not _gh['loading']:
-        _gh['repo'] = _configured_repo()
+    gh = _gh_state()
+    if gh['snap'] is None and not gh['loading']:
+        gh['repo'] = _configured_repo()
     with frame('/'):
         with ui.row().classes('w-full items-center'):
             ui.label('Leitstand').classes('kontor-title text-xl')
@@ -241,5 +265,5 @@ def page() -> None:
         focus_panel()
         lead_panel()
         gh_panel()
-        if _gh['snap'] is None and not _gh['loading']:
-            asyncio.create_task(_load_gh())
+        if gh['snap'] is None and not gh['loading']:
+            asyncio.create_task(_load_gh(gh))
