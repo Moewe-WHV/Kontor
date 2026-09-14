@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from nicegui import ui
 
-from components import frame, stat_tile
+from components import frame, stat_tile, viewer_is_leader
 from store import CHANGE_STATUS, ChangeRequest, store, today_iso
 
 STATUS_COLOR = {'offen': 'warning', 'angenommen': 'positive', 'abgelehnt': 'negative'}
@@ -95,4 +95,6 @@ def content() -> None:
 def page() -> None:
     with frame('/changes'):
         ui.label('Änderungsmanagement').classes('kontor-title text-xl')
+        if not viewer_is_leader():
+            return  # frame() zeigt bereits den "nur fuer Teamleitung"-Hinweis an
         content()

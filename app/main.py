@@ -24,9 +24,9 @@ from store import store
 from views import (absences, board, budget, burndown, calendar, capacity, changes,
                    charter, dashboard, documents, environments, handbook, ideas, incidents,
                    lessons, meetings, metrics, milestones, modules, okrs, one_on_ones, poker,
-                   portfolio, projects, quality, raci, raid, releases, requirements, retro,
-                   roadmap, roles, settings, sprints, stakeholders, standup, status, team,
-                   timelog, today, users, vendors, wetter)
+                   portfolio, project_access, projects, quality, raci, raid, releases,
+                   requirements, retro, roadmap, roles, settings, sprints, stakeholders,
+                   standup, status, team, timelog, today, users, vendors, wetter)
 
 ROUTES = {
     '/': dashboard,
@@ -43,7 +43,7 @@ ROUTES = {
     '/retro': retro, '/wetter': wetter, '/lessons': lessons,
     '/ideas': ideas, '/one-on-ones': one_on_ones,
     '/projects': projects, '/team': team, '/modules': modules, '/settings': settings,
-    '/users': users,
+    '/users': users, '/zugriff': project_access,
 }
 
 

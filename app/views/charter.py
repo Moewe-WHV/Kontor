@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from nicegui import ui
 
-from components import frame, stat_tile
+from components import frame, stat_tile, viewer_is_leader
 from store import store
 
 
@@ -70,4 +70,6 @@ def content() -> None:
 def page() -> None:
     with frame('/charter'):
         ui.label('Projekt-Steckbrief').classes('kontor-title text-xl')
+        if not viewer_is_leader():
+            return  # frame() zeigt bereits den "nur fuer Teamleitung"-Hinweis an
         content()

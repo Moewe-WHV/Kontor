@@ -5,7 +5,7 @@ from datetime import date
 
 from nicegui import ui
 
-from components import avatar, frame, stat_tile
+from components import avatar, frame, stat_tile, viewer_is_leader
 from store import COST_CYCLES, VENDOR_KINDS, Vendor, store
 
 
@@ -100,4 +100,6 @@ def content() -> None:
 def page() -> None:
     with frame('/vendors'):
         ui.label('Lieferanten & Lizenzen').classes('kontor-title text-xl')
+        if not viewer_is_leader():
+            return  # frame() zeigt bereits den "nur fuer Teamleitung"-Hinweis an
         content()

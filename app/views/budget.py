@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from nicegui import ui
 
-from components import bar, frame, stat_tile
+from components import bar, frame, stat_tile, viewer_is_leader
 from store import store
 
 
@@ -91,4 +91,6 @@ def content() -> None:
 def page() -> None:
     with frame('/budget'):
         ui.label('Budget & Kosten').classes('kontor-title text-xl')
+        if not viewer_is_leader():
+            return  # frame() zeigt bereits den "nur fuer Teamleitung"-Hinweis an
         content()

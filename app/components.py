@@ -74,6 +74,7 @@ NAV_GROUPS = [
         ('nav.team', 'badge', '/team'),
         ('nav.modules', 'tune', '/modules'),
         ('nav.users', 'admin_panel_settings', '/users'),
+        ('nav.zugriff', 'key', '/zugriff'),
         ('nav.settings', 'settings', '/settings'),
     ]),
 ]
@@ -103,8 +104,15 @@ def _set_acting_member(mid: str) -> None:
 
 
 def viewer_is_leader(pid: str | None = None) -> bool:
-    """Darf die aktuelle Session (Auswahl oben im Header) Rollen aendern /
-    Fuehrungsbereiche sehen? Siehe store.is_leader fuer die Details."""
+    """Darf die aktuell eingeloggte Person Rollen aendern / Fuehrungsbereiche
+    sehen? Sobald fuer das Projekt echte Zugriffe vergeben sind (siehe
+    store.grant_access / views/project_access.py), entscheidet die am Login
+    haengende Rolle (store.is_project_leader) – nicht mehr die frei waehlbare
+    Session-Auswahl unten. Erst ohne konfigurierte Zugriffe faellt das auf
+    den alten, session-lokalen Mechanismus zurueck (siehe store.is_leader)."""
+    verdict = store.is_project_leader(pid, auth.current_user())
+    if verdict is not None:
+        return verdict
     return store.is_leader(pid, acting_member_id())
 
 
@@ -122,10 +130,13 @@ def frame(active_path: str):
             ui.label(t('app.title')).classes('kontor-title text-xl leading-none')
             ui.label(t('app.subtitle')).classes('text-[10px] uppercase tracking-widest opacity-70 leading-none')
 
-        projects = store.active_projects
+        me = auth.current_user()
+        projects = store.visible_projects(me)
         if projects:
+            switcher_value = store.current_project_id \
+                if any(p.id == store.current_project_id for p in projects) else projects[0].id
             ui.select({p.id: f'{p.key or "·"}  {p.name}' for p in projects},
-                      value=store.current_project_id, on_change=_switch_project) \
+                      value=switcher_value, on_change=_switch_project) \
                 .props('dense options-dense borderless dark').classes('ml-3 min-w-[13rem]')
             if store.project:
                 _, mode_icon = PROJECT_MODE.get(store.project.mode, PROJECT_MODE['team'])
@@ -149,12 +160,13 @@ def frame(active_path: str):
             ui.button(icon='logout', on_click=auth.logout) \
                 .props('flat round color=white').tooltip(t('app.logout_tooltip'))
 
-    mid = acting_member_id()
+    is_lead = viewer_is_leader()
     with drawer:
         for group, items in NAV_GROUPS:
             visible = [it for it in items
-                       if (store.module_enabled(it[2], member_id=mid) or it[2] == active_path)
-                       and (it[2] != '/users' or auth.has_role('admin'))]
+                       if (store.module_enabled(it[2], leader=is_lead) or it[2] == active_path)
+                       and (it[2] != '/users' or auth.has_role('admin'))
+                       and (it[2] != '/zugriff' or auth.has_role('admin') or is_lead)]
             if not visible:
                 continue
             group_active = any(path == active_path for _, _, path in visible)
@@ -163,7 +175,7 @@ def frame(active_path: str):
             with exp:
                 for label, icon, path in visible:
                     active = path == active_path
-                    off = not store.module_enabled(path, member_id=mid)
+                    off = not store.module_enabled(path, leader=is_lead)
                     row = ui.row().classes(
                         'nav-item w-full items-center gap-3 px-2 py-1 rounded-lg cursor-pointer no-wrap '
                         + ('nav-active' if active else '') + (' opacity-50' if off else ''))
@@ -174,9 +186,25 @@ def frame(active_path: str):
                         if off:
                             ui.icon('visibility_off', size='14px').classes('text-grey-5')
 
+    # HINWEIS: frame() ist ein @contextmanager (siehe unten "yield") – der Aufruf
+    # "with frame(path): ...seiteneigener Code..." fuehrt diesen eigenen Code erst
+    # NACH dem "yield" hier aus. Ein bedingt uebersprungenes "yield" wuerde also
+    # nicht etwa den Seiteninhalt verstecken, sondern den kompletten Seitenaufruf
+    # mit einem RuntimeError abbrechen (Python-Generator-Contextmanager-Regel).
+    # Die Banner unten sind daher wie schon bisher informativ/Navigations-Hinweise
+    # (die Navigation blendet den Link ja bereits aus) – ein wirklich hartes
+    # Content-Verbot muesste jede einzelne Seite selbst umsetzen (siehe
+    # views/users.py, views/project_access.py fuer das Muster: page() prueft
+    # selbst und ruft content() bei fehlender Berechtigung gar nicht erst auf).
     with ui.column().classes('w-full max-w-6xl mx-auto p-4 gap-3'):
         if not store.project:
             ui.label(t('app.no_project')).classes('text-grey-6')
+        elif not store.can_view_project(store.project, me):
+            with ui.card().classes('w-full bg-amber-1 border border-amber-3 gap-1'):
+                with ui.row().classes('items-center gap-2'):
+                    ui.icon('lock').classes('text-amber-9')
+                    ui.label('Du hast keinen Zugriff (mehr) auf das aktuell gewählte Projekt. '
+                              'Wähle oben im Header dein Projekt.').classes('text-sm')
         elif not store.module_enabled(active_path):
             with ui.card().classes('w-full bg-amber-1 border border-amber-3 gap-1'):
                 with ui.row().classes('items-center gap-2'):
@@ -185,7 +213,7 @@ def frame(active_path: str):
                     ui.button(t('app.manage_modules'), icon='tune',
                               on_click=lambda: ui.navigate.to('/modules')) \
                         .props('flat dense no-caps size=sm')
-        elif not store.module_enabled(active_path, member_id=mid):
+        elif not store.module_enabled(active_path, leader=is_lead):
             with ui.card().classes('w-full bg-amber-1 border border-amber-3 gap-1'):
                 with ui.row().classes('items-center gap-2'):
                     ui.icon('lock').classes('text-amber-9')

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from nicegui import ui
 
-from components import frame, stat_tile
+from components import frame, stat_tile, viewer_is_leader
 from store import RACI_LETTERS, RaciArea, store
 
 LETTER_COLOR = {'R': '#1f4e5f', 'A': '#a63a3a', 'C': '#cf8a2e', 'I': '#8ba1a8'}
@@ -92,4 +92,6 @@ def content() -> None:
 def page() -> None:
     with frame('/raci'):
         ui.label('RACI – Verantwortlichkeiten').classes('kontor-title text-xl')
+        if not viewer_is_leader():
+            return  # frame() zeigt bereits den "nur fuer Teamleitung"-Hinweis an
         content()

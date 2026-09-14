@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from nicegui import ui
 
-from components import chart_opts, frame, stat_tile
+from components import chart_opts, frame, stat_tile, viewer_is_leader
 from store import STAKEHOLDER_STANCE, Stakeholder, store
 
 STANCE_COLOR = {'befuerworter': 'positive', 'neutral': 'grey-6', 'kritiker': 'negative'}
@@ -125,4 +125,6 @@ def content() -> None:
 def page() -> None:
     with frame('/stakeholders'):
         ui.label('Stakeholder-Management').classes('kontor-title text-xl')
+        if not viewer_is_leader():
+            return  # frame() zeigt bereits den "nur fuer Teamleitung"-Hinweis an
         content()

@@ -5,7 +5,7 @@ from datetime import date
 
 from nicegui import ui
 
-from components import avatar, frame
+from components import avatar, frame, viewer_is_leader
 from store import OneOnOne, store
 
 _sel = {'member': None}
@@ -91,4 +91,6 @@ def content() -> None:
 def page() -> None:
     with frame('/one-on-ones'):
         ui.label('1:1-Gespräche').classes('kontor-title text-xl')
+        if not viewer_is_leader():
+            return  # frame() zeigt bereits den "nur fuer Teamleitung"-Hinweis an
         content()

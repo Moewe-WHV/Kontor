@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from nicegui import ui
 
+import auth
 from components import frame
 from store import PROJECT_MODE, Project, store
 from views.modules import PRESETS
@@ -207,9 +208,13 @@ def content() -> None:
         ui.space()
         ui.button('Neues Projekt', icon='add', on_click=_form).props('no-caps')
 
-    for p in store.projects:
+    me = auth.current_user()
+    is_admin = auth.has_role('admin')
+    visible = store.projects if is_admin else store.visible_projects(me)
+    for p in visible:
         sprints = store.p_sprints(p.id)
         tasks = store.p_tasks(p.id)
+        can_edit = is_admin or store.is_project_leader(p.id, me) is not False
         with ui.card().classes('w-full gap-1').style(f'border-left:4px solid {p.color}'):
             with ui.row().classes('w-full items-center gap-2 no-wrap'):
                 ui.label(p.key or '·').classes('kontor-title text-xs px-1 rounded') \
@@ -225,7 +230,8 @@ def content() -> None:
                 ui.button('Steckbrief', icon='assignment',
                           on_click=lambda p=p: (store.set_current_project(p.id), ui.navigate.to('/charter'))) \
                     .props('flat dense size=sm no-caps')
-                ui.button(icon='edit', on_click=lambda p=p: _form(p)).props('flat dense size=sm')
+                if can_edit:
+                    ui.button(icon='edit', on_click=lambda p=p: _form(p)).props('flat dense size=sm')
             if p.description:
                 ui.label(p.description).classes('text-sm text-grey-7')
 

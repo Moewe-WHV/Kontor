@@ -208,6 +208,22 @@ class Member:
 
 
 @dataclass
+class ProjectAccess:
+    """Echter, an den Login gebundener Projektzugriff (siehe Store.grant_access).
+
+    Unabhaengig von ``User.role`` (globale Systemrolle) und von ``Member``
+    (organisationsweiter Ressourcen-/Team-Datensatz fuer Kapazitaet & Budget).
+    Ein Projekt ohne jeden ``ProjectAccess``-Eintrag gilt als "noch nicht
+    eingeschraenkt" und bleibt fuer alle sichtbar (siehe Store.can_view_project) –
+    so sperrt die Einfuehrung dieses Features bestehende Installationen nicht aus.
+    """
+    id: str
+    project_id: str
+    user_id: str
+    role: str = 'member'   # 'leader' | 'member' — projekt-lokale Rolle
+
+
+@dataclass
 class Sprint:
     id: str
     project_id: str
@@ -706,7 +722,8 @@ class Lesson:
 
 _MODELS = {
     'users': User,
-    'projects': Project, 'members': Member, 'sprints': Sprint, 'tasks': Task,
+    'projects': Project, 'members': Member, 'project_access': ProjectAccess,
+    'sprints': Sprint, 'tasks': Task,
     'capacities': Capacity, 'worklogs': WorkLog, 'standups': Standup,
     'retro_notes': RetroNote, 'action_items': ActionItem, 'absences': Absence,
     'risks': Risk, 'decisions': Decision, 'releases': Release, 'ideas': Idea,
@@ -860,6 +877,64 @@ class Store:
             return None
         return u if verify_password(password, u.password_hash) else None
 
+    # -- Projektzugriff (ProjectAccess) ----------------------------------
+    def access_rows(self, pid: str | None) -> list[ProjectAccess]:
+        return [a for a in self.project_access if a.project_id == pid]
+
+    def access_for(self, pid: str | None, user_id: str | None) -> ProjectAccess | None:
+        if not user_id:
+            return None
+        return next((a for a in self.project_access if a.project_id == pid and a.user_id == user_id), None)
+
+    def grant_access(self, pid: str, user_id: str, role: str = 'member') -> ProjectAccess:
+        existing = self.access_for(pid, user_id)
+        if existing:
+            existing.role = role
+            self.save()
+            return existing
+        return self.add('project_access', ProjectAccess, project_id=pid, user_id=user_id, role=role)
+
+    def set_access_role(self, access: ProjectAccess, role: str) -> None:
+        access.role = role
+        self.save()
+
+    def revoke_access(self, access_id: str) -> None:
+        self.remove('project_access', access_id)
+
+    def can_view_project(self, project: Project, user: User | None) -> bool:
+        """Darf ``user`` ``project`` sehen/anwaehlen?
+
+        Admins duerfen immer alles. Ohne Login (Auth aus) bleibt es wie
+        bisher offen. Ein Projekt ohne jeden ``ProjectAccess``-Eintrag gilt
+        als noch nicht eingeschraenkt und bleibt fuer alle sichtbar."""
+        if user is None or user.role == 'admin':
+            return True
+        rows = self.access_rows(project.id)
+        if not rows:
+            return True
+        return any(a.user_id == user.id for a in rows)
+
+    def visible_projects(self, user: User | None) -> list[Project]:
+        return [p for p in self.active_projects if self.can_view_project(p, user)]
+
+    def is_project_leader(self, pid: str | None, user: User | None) -> bool | None:
+        """Ist ``user`` die (echte, login-gebundene) Teamleitung von ``pid``?
+
+        Gibt ``None`` zurueck, solange fuer das Projekt noch kein
+        ``ProjectAccess`` vergeben wurde – der Aufrufer soll dann auf den
+        alten, session-lokalen Mechanismus (siehe components.acting_member_id)
+        zurueckfallen, damit bestehende Projekte niemanden aussperren."""
+        p = self.by_id('projects', pid or self.current_project_id)
+        if p is None or p.mode == 'solo':
+            return True
+        rows = self.access_rows(p.id)
+        if not rows:
+            return None
+        if user and user.role == 'admin':
+            return True
+        acc = self.access_for(p.id, user.id) if user else None
+        return bool(acc) and acc.role == 'leader'
+
     # -- Projekte -------------------------------------------------------
     @property
     def project(self) -> Project | None:
@@ -878,11 +953,11 @@ class Store:
         self.save()
 
     # -- Module je Projekt (v2) --------------------------------------
-    def module_enabled(self, path: str, pid: str | None = None, member_id: str | None = None) -> bool:
+    def module_enabled(self, path: str, pid: str | None = None, leader: bool | None = None) -> bool:
         """Ist der Bereich ``path`` fuer das Projekt (und optional die anfragende
-        Person ``member_id``) sichtbar? ``member_id`` steuert zusaetzlich die
-        Fuehrungsbereiche (siehe LEADERSHIP_MODULES / is_leader) – ohne Angabe
-        wird nur die projektweite Ein/Aus-Auswahl geprueft."""
+        Person, als bereits aufgeloestes ``leader``-Flag) sichtbar? ``leader``
+        steuert zusaetzlich die Fuehrungsbereiche (siehe LEADERSHIP_MODULES) –
+        ohne Angabe wird nur die projektweite Ein/Aus-Auswahl geprueft."""
         if path in CORE_MODULES:
             return True
         p = self.by_id('projects', pid or self.current_project_id)
@@ -890,7 +965,7 @@ class Store:
             return True
         if path in (getattr(p, 'disabled_modules', None) or []):
             return False
-        if member_id is not None and path in LEADERSHIP_MODULES and not self.is_leader(p.id, member_id):
+        if leader is not None and path in LEADERSHIP_MODULES and not leader:
             return False
         return True
 
