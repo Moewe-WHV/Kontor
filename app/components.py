@@ -189,8 +189,7 @@ def frame(active_path: str):
             with ui.card().classes('w-full bg-amber-1 border border-amber-3 gap-1'):
                 with ui.row().classes('items-center gap-2'):
                     ui.icon('lock').classes('text-amber-9')
-                    ui.label('Dieser Bereich ist nur für die Teamleitung sichtbar.') \
-                        .classes('text-sm')
+                    ui.label(t('app.module_leader_only')).classes('text-sm')
         yield
 
     _maybe_welcome()
