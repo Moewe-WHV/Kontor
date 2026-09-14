@@ -23,7 +23,7 @@ from store import store
 DECK = [0.5, 1, 2, 3, 5, 8, 13, 20, 40]
 SPECIAL_CARDS = ['?', '☕']
 
-_sessions: dict[str, dict] = {}   # project_id -> {'task_id', 'votes': {member_id: card}, 'revealed': bool}
+_sessions: dict[str, dict] = {}   # project_id -> {'task_id', 'votes': {member_id: card}, 'revealed': bool, 'version': int}
 
 
 def _card_label(card) -> str:
@@ -32,7 +32,17 @@ def _card_label(card) -> str:
 
 def _session() -> dict:
     pid = store.pid
-    return _sessions.setdefault(pid, {'task_id': None, 'votes': {}, 'revealed': False})
+    return _sessions.setdefault(pid, {'task_id': None, 'votes': {}, 'revealed': False, 'version': 0})
+
+
+def _touch(s: dict) -> None:
+    """Versionszaehler hochsetzen, wann immer sich der Session-Zustand aendert.
+
+    Der Live-Poll (siehe page(), ui.timer) baut das ganze Panel inkl. der
+    Task-Auswahl neu auf – das darf nur passieren, wenn sich wirklich etwas
+    geaendert hat. Sonst reisst ein blindes Refresh alle 1.5s einen gerade
+    offenen Dropdown/Klick weg (siehe Bugreport: "Task-Auswahl klappt nicht")."""
+    s['version'] = s.get('version', 0) + 1
 
 
 def _candidate_tasks() -> list:
@@ -46,6 +56,7 @@ def _pick_task(tid: str | None) -> None:
     s['task_id'] = tid
     s['votes'] = {}
     s['revealed'] = False
+    _touch(s)
     panel.refresh()
 
 
@@ -61,6 +72,7 @@ def _vote(card) -> None:
     if s['revealed']:
         return
     s['votes'][mid] = card
+    _touch(s)
     panel.refresh()
 
 
@@ -70,6 +82,7 @@ def _reveal() -> None:
         ui.notify('Noch niemand hat abgestimmt', type='warning')
         return
     s['revealed'] = True
+    _touch(s)
     panel.refresh()
 
 
@@ -77,6 +90,7 @@ def _new_round() -> None:
     s = _session()
     s['votes'] = {}
     s['revealed'] = False
+    _touch(s)
     panel.refresh()
 
 
@@ -188,9 +202,11 @@ def page() -> None:
     if prefill:
         task = store.task(prefill)
         if task and task.project_id == store.pid:
-            _session()['task_id'] = prefill
-            _session()['votes'] = {}
-            _session()['revealed'] = False
+            s = _session()
+            s['task_id'] = prefill
+            s['votes'] = {}
+            s['revealed'] = False
+            _touch(s)
 
     with frame('/poker'):
         with ui.row().classes('w-full items-center'):
@@ -202,4 +218,17 @@ def page() -> None:
             ui.label('Kein Projekt ausgewählt – lege in der Werft eines an.').classes('text-grey-6')
             return
         panel()
-        ui.timer(1.5, panel.refresh)
+
+        # Nur neu rendern, wenn sich der Stand seit dem letzten Tick wirklich
+        # geaendert hat (eigene Aktion oder ein anderer Tab) – ein blindes
+        # Refresh alle 1.5s wuerde sonst z. B. eine gerade geoeffnete
+        # Task-Auswahl mitten im Klick wieder einreissen.
+        seen_version = {'v': _session()['version']}
+
+        def _poll() -> None:
+            current = _session()['version']
+            if current != seen_version['v']:
+                seen_version['v'] = current
+                panel.refresh()
+
+        ui.timer(1.5, _poll)
