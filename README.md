@@ -2,7 +2,7 @@
 
 [![Built with AI](https://img.shields.io/badge/built%20with-AI-8A2BE2.svg)](https://claude.com/claude-code)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.1-blue.svg)](https://github.com/Moewe-WHV/Kontor/releases)
+[![Version](https://img.shields.io/badge/version-2.5-blue.svg)](https://github.com/Moewe-WHV/Kontor/releases)
 
 
 Ein Mehrprojekt-Werkzeugkasten für Teamleitungen in der Softwareentwicklung:
