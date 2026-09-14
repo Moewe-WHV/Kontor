@@ -29,6 +29,7 @@ def _obj_form(existing=None) -> None:
                 store.add('objectives', Objective, project_id=store.pid, **data)
             else:
                 store.update(existing, **data)
+            ui.notify('Gespeichert', type='positive')
             d.close()
             content.refresh()
 
@@ -72,6 +73,7 @@ def _kr_form(objective_id: str, existing=None) -> None:
                 store.add('key_results', KeyResult, objective_id=objective_id, **data)
             else:
                 store.update(existing, **data)
+            ui.notify('Gespeichert', type='positive')
             d.close()
             content.refresh()
 

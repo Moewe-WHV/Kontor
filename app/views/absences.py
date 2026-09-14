@@ -30,12 +30,16 @@ def _form(existing=None) -> None:
             if not member.value:
                 ui.notify('Person waehlen', type='warning')
                 return
+            if not start.value or not end.value or end.value < start.value:
+                ui.notify('Bis-Datum darf nicht vor dem Von-Datum liegen', type='warning')
+                return
             data = dict(member_id=member.value, kind=kind.value, start=start.value,
                         end=end.value, note=note.value or '')
             if is_new:
                 store.add('absences', Absence, **data)
             else:
                 store.update(existing, **data)
+            ui.notify('Gespeichert', type='positive')
             d.close()
             content.refresh()
 

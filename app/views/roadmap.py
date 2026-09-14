@@ -35,12 +35,16 @@ def _epic_form(existing=None) -> None:
             if not title.value.strip():
                 ui.notify('Titel fehlt', type='warning')
                 return
+            if start.value and end.value and end.value < start.value:
+                ui.notify('Bis-Datum darf nicht vor dem Von-Datum liegen', type='warning')
+                return
             data = dict(title=title.value.strip(), description=desc.value or '',
                         start=start.value, end=end.value, status=status.value, color=color.value)
             if is_new:
                 store.add('epics', Epic, project_id=store.pid, **data)
             else:
                 store.update(existing, **data)
+            ui.notify('Gespeichert', type='positive')
             d.close()
             content.refresh()
 

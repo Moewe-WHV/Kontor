@@ -53,6 +53,7 @@ def _form(existing=None) -> None:
                     data['reopened'] = existing.reopened + 1
                 data['resolved_at'] = today_iso() if status.value in ('behoben', 'verifiziert') else None
                 store.update(existing, **data)
+            ui.notify('Gespeichert', type='positive')
             d.close()
             content.refresh()
 
